@@ -10,14 +10,21 @@ from functools import partial
 # Typing ----
 from typing import Dict, Callable, Tuple, Any, Self
 from jaxtyping import Array, Key, Scalar
-from optax import OptState
+from optax import OptState, Schedule, GradientTransformation
 from bayinx import Model
 
 
 class MeanField(eqx.Module):
+    """
+    A fully factorized Gaussian approximation to a posterior distribution.
+    
+    # Attributes
+    - `var_params`: The variational parameters for the approximation.
+    """
     var_params: Dict[str, Array]
     __unflatten: Callable[[Array], Model] = eqx.field(static = True)
     __constraints: Model = eqx.field(static = True)
+    
     
     def __init__(self, model: Model):
         # Partition model
@@ -107,28 +114,30 @@ class MeanField(eqx.Module):
         Optimize the variational distribution.
         """
         # Construct scheduler
-        schedule = opx.exponential_decay(
+        schedule: Schedule = opx.exponential_decay(
             init_value = learning_rate,
             transition_steps = max_iters,
             decay_rate = 1 / max_iters
         )
         
         # Initialize optimizer
-        optim: opx.GradientTransformation = opx.chain(
+        optim: GradientTransformation = opx.chain(
             opx.scale(-1.0), 
             opx.adam(schedule, b1 = 0.5, b2 = 0.5, nesterov = True)
         )
-        opt_state = optim.init(eqx.filter(self, eqx.is_array))
+        opt_state: OptState = optim.init(eqx.filter(self, eqx.is_array))
         
+        
+        # Optimization loop helper functions
         @eqx.filter_jit
-        def condition(state: Tuple[MeanField, OptState, Scalar, Key]):
+        def condition(state: Tuple[Self, OptState, Scalar, Key]):
             # Unpack iteration state
             self, opt_state, i, key = state
             
             return i < max_iters
         
         @eqx.filter_jit
-        def body(state: Tuple[MeanField, OptState, Scalar, Key]):
+        def body(state: Tuple[Self, OptState, Scalar, Key]):
             # Unpack iteration state
             self, opt_state, i, key = state
             
@@ -138,20 +147,20 @@ class MeanField(eqx.Module):
             # Update PRNG key
             key, _ = jr.split(key)
             
-            # Calculate ELBO and gradient
+            # Compute ELBO and gradient
             _, updates = self.elbo(
                 n = var_samples,
                 key = key,
                 data = data
             )
             
-            # Calculate updates
+            # Compute updates
             updates, opt_state = optim.update(
                 updates, opt_state, eqx.filter(self, eqx.is_array)
             )
             
             # Update variational distribution
-            self = eqx.apply_updates(self, updates)
+            self: Self = eqx.apply_updates(self, updates)
             
             return self, opt_state, i, key
         

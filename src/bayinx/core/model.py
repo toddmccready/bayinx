@@ -14,7 +14,7 @@ class __ModelMeta(type(eqx.Module)):
         
         # Check parameters are a Dict of jax Arrays
         if not isinstance(obj.params, Dict):
-            raise ValueError(f"Model {cls.__name__} must initialize 'params' as a Dict in its __init__.")
+            raise ValueError(f"Model {cls.__name__} must initialize 'params' as a Dict.")
         
         for key, value in obj.params.items():
             if not isinstance(value, Array):
@@ -23,7 +23,7 @@ class __ModelMeta(type(eqx.Module)):
         
         # Check constraints are a Dict of functions
         if not isinstance(obj.constraints, Dict):
-            raise ValueError(f"Model {cls.__name__} must initialize 'constraints' as a Dict in its __init__.")
+            raise ValueError(f"Model {cls.__name__} must initialize 'constraints' as a Dict.")
         
         for key, value in obj.constraints.items():
             if not isinstance(value, Callable):
@@ -59,7 +59,8 @@ class Model(eqx.Module, metaclass = __ModelMeta):
     def __init_subclass__(cls):
         """
         Create constrain method.
-        """        
+        """
+        
         # Construct constrain method
         def constrain(self: Model):
             t_params = self.params
