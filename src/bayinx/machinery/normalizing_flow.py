@@ -1,19 +1,15 @@
-# Imports ----
-import jax
-import equinox as eqx
-import optax as opx
-import jax.lax as lax, jax.numpy as jnp, jax.random as jr
-from jax.flatten_util import ravel_pytree
-from bayinx.dists import normal
-from functools import partial
-
-# Typing ----
-from typing import Dict, Callable, Tuple, Any
-from jaxtyping import Array, Key, Scalar
-from optax import OptState
-from bayinx.machinery import MeanField
-from bayinx import Model
+from bayinx.core import Variational
+from bayinx.machinery.diffeos import Diffeomorphism
 
 
-class NormalizingFlow(eqx.Module):
-    base_var_params: MeanField
+class NormalizingFlow(Variational):
+    """
+    An ordered collection of diffeomorphisms that map a base distribution to an approximation of a posterior distribution.
+
+    # Attributes
+    - `base`: A base distribution.
+    - `diffeos`: A collection of diffeomorphisms.
+    """
+
+    base: Variational
+    diffeos: list[Diffeomorphism]
