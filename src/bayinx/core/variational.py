@@ -3,8 +3,7 @@ from typing import Any, Callable
 
 import equinox as eqx
 import jax
-import jax.numpy as jnp
-from jaxtyping import Array, Float, Key, Scalar
+from jaxtyping import Array, Float, Key
 
 from bayinx.core import Model
 
@@ -22,9 +21,20 @@ class Variational(eqx.Module):
     _constraints: Model
 
     @abstractmethod
+    def filter_spec(self):
+        pass
+
+    @abstractmethod
+    def elbo(self, draws: Array) -> Array:
+        """
+        Evaluate the variational distribution at `draws`.
+        """
+        pass
+
+    @abstractmethod
     def sample(self, n: int, key: Key) -> Array:
         """
-        Sample from the variational distribution `n` times.
+        Sample from the variational distribution.
         """
         pass
 
@@ -58,22 +68,3 @@ class Variational(eqx.Module):
             return model.eval(data)
 
         cls.eval_model = jax.vmap(eqx.filter_jit(eval_model), (None, 0, None))
-
-        def elbo(self, n: int, key: Key, data: Any = None) -> Scalar:
-            """
-            Estimate the ELBO and its gradient(w.r.t the variational parameters).
-            """
-
-            # Sample draws from variational distribution
-            draws: Array = self.sample(n, key)
-
-            # Evaluate posterior density for each draw
-            posterior_evals: Array = self.eval_model(draws, data)
-
-            # Evaluate variational density for each draw
-            variational_evals: Array = self.eval(draws)
-
-            # Evaluate ELBO
-            return jnp.mean(posterior_evals - variational_evals)
-
-        cls.elbo = eqx.filter_value_and_grad(eqx.filter_jit(elbo))

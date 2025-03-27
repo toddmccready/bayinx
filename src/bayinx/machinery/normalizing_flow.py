@@ -7,7 +7,7 @@ import jax.random as jr
 import jax.tree_util as jtu
 import optax as opx
 from jax.flatten_util import ravel_pytree
-from jaxtyping import Array, Float, Key, Scalar
+from jaxtyping import Array, Float, Key, PyTree, Scalar
 from optax import GradientTransformation, OptState, Schedule
 
 from bayinx.core import Flow, Model, Variational
@@ -23,7 +23,7 @@ class NormalizingFlow(Variational):
     """
 
     flows: list[Flow]
-    base: Variational = eqx.field(static=True)
+    base: Variational
     _unflatten: Callable[[Float[Array, "..."]], Model] = eqx.field(static=True)
     _constraints: Model = eqx.field(static=True)
 
@@ -72,27 +72,77 @@ class NormalizingFlow(Variational):
         """
         ladj = jnp.array(0.0)
 
+        # Evaluate base density
+        variational_evals = self.base.eval(draws)
+
         for map in reversed(self.flows):
-            # Apply inverse transformation
+            # Apply reverse transformation
             draws = map.reverse(draws)
 
             # Evaluate adjustment
             ladj = ladj + map.inverse_ladj(draws)
 
-        # Evaluate base density
-        variational_evals = self.base.eval(draws)
-
         return variational_evals + ladj
 
     @eqx.filter_jit
     def filter_spec(self):
+        # Only optimize the parameters of the flows
         filter_spec = jtu.tree_map(lambda _: False, self)
         filter_spec = eqx.tree_at(
-                lambda nf: nf.flows,
-                filter_spec,
-                replace=True,
-            )
+            lambda nf: nf.flows,
+            filter_spec,
+            replace=True,
+        )
         return filter_spec
+
+
+
+    @eqx.filter_jit
+    def _eval(self, draws: Array, data: Any = None) -> Tuple[Array, Array]:
+        ladj = jnp.array(0.0)
+
+        # Evaluate base density
+        variational_evals = self.base.eval(draws)
+
+        for map in self.flows:
+            # Evaluate adjustment
+            ladj = ladj + map.inverse_ladj(draws)
+            #
+            # Apply forward transformation
+            draws = map.forward(draws)
+
+        # Compute variational density
+        variational_evals = variational_evals + ladj
+
+        # Compute posterior density
+        posterior_evals = self.eval_model(draws, data)
+
+        return posterior_evals, variational_evals
+
+    @eqx.filter_jit
+    def elbo(self, n: int, key: Key, data: Any = None) -> Tuple[Scalar, PyTree]:
+        """
+        Estimate the ELBO and its gradient(w.r.t the variational parameters).
+        """
+        # Partition
+        dyn, static = eqx.partition(self, self.filter_spec())
+
+        @eqx.filter_value_and_grad
+        @eqx.filter_jit
+        def elbo(dyn: NormalizingFlow, n: int, key: Key, data: Any = None):
+            # Combine
+            vari = eqx.combine(dyn, static)
+            #
+            # Sample draws from base distribution
+            draws: Array = vari.base.sample(n, key)
+            #
+            # Compute posterior and variational density
+            posterior_evals, variational_evals = vari._eval(draws, data)
+            #
+            # Evaluate ELBO
+            return jnp.mean(posterior_evals - variational_evals)
+
+        return elbo(dyn, n, key, data)
 
     @eqx.filter_jit
     def fit(
@@ -152,7 +202,7 @@ class NormalizingFlow(Variational):
 
             # Compute updates
             updates, opt_state = optim.update(
-                updates, opt_state, eqx.filter(self, eqx.is_array)
+                updates, opt_state, eqx.filter(self, self.filter_spec())
             )
 
             # Update variational distribution

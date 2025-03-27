@@ -4,24 +4,27 @@ from typing import Callable, Dict
 import equinox as eqx
 import jax
 import jax.numpy as jnp
-from jaxtyping import Array, Float
+from jaxtyping import Array, Float, Scalar
 
 from bayinx.core import Flow
 
 
-class ElementwiseAffine(Flow):
+class Planar(Flow):
     """
     An elementwise affine diffeomorphism.
 
     # Attributes
     - `params`: A dictionary containing the JAX Arrays representing the scale and shift parameters.
     - `constraints`: A dictionary of constraining transformations.
+    - `transform`: An elementwise monotonic
     """
 
     params: Dict[str, Float[Array, "..."]]
     constraints: Dict[str, Callable[[Float[Array, "..."]], Float[Array, "..."]]] = eqx.field(static=True)
+    smooth_map: Callable[[Scalar], Scalar] = eqx.field(static=True)
+    smooth_der: Callable[[Scalar], Scalar] = eqx.field(static=True)
 
-    def __init__(self, dim: int):
+    def __init__(self, dim: int, smooth_map: Callable[[Scalar], Scalar] = lambda x: x):
         """
         Initializes an elementwise affine diffeomorphism.
 
@@ -29,15 +32,19 @@ class ElementwiseAffine(Flow):
         - `dim`: The dimension of the parameter space of interest.
         """
         self.params = {
-            "shift": jnp.repeat(jnp.array(0.0), dim),
-            "scale": jnp.repeat(jnp.array(0.0), dim),
+            "w": jnp.repeat(jnp.array(0.0), dim),
+            "b": jnp.array(0.0),
+            'u': jnp.repeat(jnp.array(0.0), dim)
         }
-        self.constraints = {"scale": jnp.exp}
+        self.constraints = {}
+
+        self.smooth_map = smooth_map
+        self.smooth_der = jax.grad(jax.jit(smooth_map))
 
     @eqx.filter_jit
     def forward(self, draws: Array) -> Array:
         """
-        Applies the forward elementwise affine transformation for each draw.
+        Applies the forward transformation for each draw.
 
         # Parameters
         - `draws`: A collection of variational draws.
@@ -71,7 +78,7 @@ class ElementwiseAffine(Flow):
         Computes the log-absolute-determinant of the Jacobian for each draw of the reverse transformation.
 
         # Parameters
-        - `draws`: Variational draws.
+        - `draws`: A collection of variational draws.
 
         # Returns
         The log-absolute-determinant of the Jacobian.

@@ -7,7 +7,7 @@ import jax.random as jr
 import jax.tree_util as jtu
 import optax as opx
 from jax.flatten_util import ravel_pytree
-from jaxtyping import Array, Float, Key, Scalar
+from jaxtyping import Array, Float, Key, PyTree, Scalar
 from optax import GradientTransformation, OptState, Schedule
 
 from bayinx.core import Model, Variational
@@ -74,6 +74,34 @@ class MeanField(Variational):
                 replace=True,
             )
         return filter_spec
+
+    @eqx.filter_jit
+    def elbo(self, n: int, key: Key, data: Any = None) -> Tuple[Scalar, PyTree]:
+        """
+        Estimate the ELBO and its gradient(w.r.t the variational parameters).
+        """
+        # Partition
+        dyn, static = eqx.partition(self, self.filter_spec())
+
+        @eqx.filter_value_and_grad
+        @eqx.filter_jit
+        def elbo(dyn: Self, n: int, key: Key, data: Any = None):
+            # Combine
+            vari = eqx.combine(dyn,static)
+
+            # Sample draws from variational distribution
+            draws: Array = vari.sample(n, key)
+
+            # Evaluate posterior density for each draw
+            posterior_evals: Array = vari.eval_model(draws, data)
+
+            # Evaluate variational density for each draw
+            variational_evals: Array = vari.eval(draws)
+
+            # Evaluate ELBO
+            return jnp.mean(posterior_evals - variational_evals)
+
+        return elbo(dyn, n, key, data)
 
     @eqx.filter_jit
     def fit(
