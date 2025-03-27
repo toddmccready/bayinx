@@ -4,55 +4,16 @@ from typing import Any, Callable, Dict
 import equinox as eqx
 from jaxtyping import Array, Scalar
 
-
-class __ModelMeta(type(eqx.Module)):
-    # Metaclass to ensure Model attribute types are respected.
-    def __call__(cls, *args, **kwargs):
-        obj = super().__call__(*args, **kwargs)
-
-        # Check parameters are a Dict of jax Arrays
-        if not isinstance(obj.params, Dict):
-            raise ValueError(
-                f"Model {cls.__name__} must initialize 'params' as a Dict."
-            )
-
-        for key, value in obj.params.items():
-            if not isinstance(value, Array):
-                raise TypeError(f"Parameter '{key}' must be a jax Array.")
-
-        # Check constraints are a Dict of functions
-        if not isinstance(obj.constraints, Dict):
-            raise ValueError(
-                f"Model {cls.__name__} must initialize 'constraints' as a Dict."
-            )
-
-        for key, value in obj.constraints.items():
-            if not isinstance(value, Callable):
-                raise TypeError(f"Constraint for parameter '{key}' must be a function.")
-
-        # Check that the constrain method returns a dict equivalent to `params`
-        t_params: Dict[str, Array] = obj.constrain()
-
-        if not isinstance(t_params, Dict):
-            raise ValueError(
-                f"The 'constrain' method of {cls.__name__} must return a Dict of jax Arrays."
-            )
-
-        for key, value in t_params.items():
-            if not isinstance(value, Array):
-                raise TypeError(f"Constrained parameter '{key}' must be a jax Array.")
-
-            if not value.shape == obj.params[key].shape:
-                raise ValueError(
-                    f"Constrained parameter '{key}' must have same shape as unconstrained counterpart."
-                )
-
-        return obj
+from bayinx.core.utils import __MyMeta
 
 
-class Model(eqx.Module, metaclass=__ModelMeta):
+class Model(eqx.Module, metaclass=__MyMeta):
     """
     A probabilistic model.
+
+    # Attributes
+    - `params`: A dictionary of JAX Arrays representing parameters of the model.
+    - `constraints`: A dictionary of functions that constrain their corresponding parameter.
     """
 
     params: Dict[str, Array]
@@ -67,8 +28,13 @@ class Model(eqx.Module, metaclass=__ModelMeta):
         Create constrain method.
         """
 
-        # Construct constrain method
-        def constrain(self: Model):
+        def constrain(self: Model) -> Dict[str, Array]:
+            """
+            Constrain `params` to the appropriate domain.
+
+            # Returns
+            A dictionary of transformed JAX Arrays representing the constrained parameters.
+            """
             t_params = self.params
 
             for par, map in self.constraints.items():

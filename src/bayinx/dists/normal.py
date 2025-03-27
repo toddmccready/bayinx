@@ -2,7 +2,7 @@
 import jax.lax as _lax
 
 ## Typing
-from jaxtyping import Array, ArrayLike, Real
+from jaxtyping import Array, Real
 
 # MARK: Constants
 _PI = 3.141592653589793
@@ -10,7 +10,7 @@ _PI = 3.141592653589793
 
 # MARK: Functions ----
 def prob(
-    x: Real[ArrayLike, "..."], mu: Real[ArrayLike, "..."], sigma: Real[ArrayLike, "..."]
+    x: Real[Array, "..."], mu: Real[Array, "..."], sigma: Real[Array, "..."]
 ) -> Real[Array, "..."]:
     """
     The probability density function (PDF) for a Normal distribution.
@@ -30,7 +30,7 @@ def prob(
 
 
 def logprob(
-    x: Real[ArrayLike, "..."], mu: Real[ArrayLike, "..."], sigma: Real[ArrayLike, "..."]
+    x: Real[Array, "..."], mu: Real[Array, "..."], sigma: Real[Array, "..."]
 ) -> Real[Array, "..."]:
     """
     The log of the probability density function (log PDF) for a Normal distribution.
@@ -48,7 +48,7 @@ def logprob(
 
 
 def uprob(
-    x: Real[ArrayLike, "..."], mu: Real[ArrayLike, "..."], sigma: Real[ArrayLike, "..."]
+    x: Real[Array, "..."], mu: Real[Array, "..."], sigma: Real[Array, "..."]
 ) -> Real[Array, "..."]:
     """
     The unnormalized probability density function (uPDF) for a Normal distribution.
@@ -66,7 +66,7 @@ def uprob(
 
 
 def ulogprob(
-    x: Real[ArrayLike, "..."], mu: Real[ArrayLike, "..."], sigma: Real[ArrayLike, "..."]
+    x: Real[Array, "..."], mu: Real[Array, "..."], sigma: Real[Array, "..."]
 ) -> Real[Array, "..."]:
     """
     The log of the unnormalized probability density function (log uPDF) for a Normal distribution.
