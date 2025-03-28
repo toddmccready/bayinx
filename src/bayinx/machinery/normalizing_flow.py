@@ -85,6 +85,21 @@ class NormalizingFlow(Variational):
         return variational_evals + ladj
 
     @eqx.filter_jit
+    def _eval(self, draws: Array, data = None):
+        variational_evals = self.base.eval(draws)
+
+        for map in self.flows:
+            # Evaluate adjustment
+            variational_evals = variational_evals + map.inverse_ladj(draws)
+
+            # Apply forward transformation
+            draws = map.forward(draws)
+
+        posterior_evals = self.eval_model(draws, data)
+
+        return jnp.mean(posterior_evals - variational_evals)
+
+    @eqx.filter_jit
     def filter_spec(self):
         # Only optimize the parameters of the flows
         filter_spec = jtu.tree_map(lambda _: False, self)
@@ -107,19 +122,13 @@ class NormalizingFlow(Variational):
         @eqx.filter_jit
         def elbo(dyn: Self, n: int, key: Key, data: Any = None):
             # Combine
-            vari = eqx.combine(dyn,static)
+            self = eqx.combine(dyn,static)
 
             # Sample draws from variational distribution
-            draws: Array = vari.sample(n, key)
-
-            # Evaluate posterior density for each draw
-            posterior_evals: Array = vari.eval_model(draws, data)
-
-            # Evaluate variational density for each draw
-            variational_evals: Array = vari.eval(draws)
+            draws: Array = self.sample(n, key)
 
             # Evaluate ELBO
-            return jnp.mean(posterior_evals - variational_evals)
+            return self._eval(draws, data)
 
         return elbo(dyn, n, key, data)
 
