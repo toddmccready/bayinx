@@ -72,15 +72,15 @@ class NormalizingFlow(Variational):
         """
         ladj = jnp.array(0.0)
 
-        # Evaluate base density
-        variational_evals = self.base.eval(draws)
-
         for map in reversed(self.flows):
-            # Apply reverse transformation
+            # Apply inverse transformation
             draws = map.reverse(draws)
 
             # Evaluate adjustment
             ladj = ladj + map.inverse_ladj(draws)
+
+        # Evaluate base density
+        variational_evals = self.base.eval(draws)
 
         return variational_evals + ladj
 
@@ -95,30 +95,6 @@ class NormalizingFlow(Variational):
         )
         return filter_spec
 
-
-
-    @eqx.filter_jit
-    def _eval(self, draws: Array, data: Any = None) -> Tuple[Array, Array]:
-        ladj = jnp.array(0.0)
-
-        # Evaluate base density
-        variational_evals = self.base.eval(draws)
-
-        for map in self.flows:
-            # Evaluate adjustment
-            ladj = ladj + map.inverse_ladj(draws)
-            #
-            # Apply forward transformation
-            draws = map.forward(draws)
-
-        # Compute variational density
-        variational_evals = variational_evals + ladj
-
-        # Compute posterior density
-        posterior_evals = self.eval_model(draws, data)
-
-        return posterior_evals, variational_evals
-
     @eqx.filter_jit
     def elbo(self, n: int, key: Key, data: Any = None) -> Tuple[Scalar, PyTree]:
         """
@@ -129,16 +105,19 @@ class NormalizingFlow(Variational):
 
         @eqx.filter_value_and_grad
         @eqx.filter_jit
-        def elbo(dyn: NormalizingFlow, n: int, key: Key, data: Any = None):
+        def elbo(dyn: Self, n: int, key: Key, data: Any = None):
             # Combine
-            vari = eqx.combine(dyn, static)
-            #
-            # Sample draws from base distribution
-            draws: Array = vari.base.sample(n, key)
-            #
-            # Compute posterior and variational density
-            posterior_evals, variational_evals = vari._eval(draws, data)
-            #
+            vari = eqx.combine(dyn,static)
+
+            # Sample draws from variational distribution
+            draws: Array = vari.sample(n, key)
+
+            # Evaluate posterior density for each draw
+            posterior_evals: Array = vari.eval_model(draws, data)
+
+            # Evaluate variational density for each draw
+            variational_evals: Array = vari.eval(draws)
+
             # Evaluate ELBO
             return jnp.mean(posterior_evals - variational_evals)
 
