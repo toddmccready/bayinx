@@ -27,14 +27,7 @@ class Flow(eqx.Module, metaclass=__MyMeta):
         pass
 
     @abstractmethod
-    def reverse(self, draws: Array) -> Array:
-        """
-        Computes the reverse transformation of `draws`.
-        """
-        pass
-
-    @abstractmethod
-    def inverse_ladj(self, draws: Array) -> Array:
+    def ladj(self, draws: Array) -> Array:
         """
         Computes the log-absolute-determinant of the Jacobian at `draws` for the reverse transformation.
 

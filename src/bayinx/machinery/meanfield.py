@@ -58,7 +58,6 @@ class MeanField(Variational):
 
     @eqx.filter_jit
     def eval(self, draws: Array) -> Array:
-
         return normal.logprob(
             x=draws,
             mu=self.var_params["mean"],
@@ -69,10 +68,10 @@ class MeanField(Variational):
     def filter_spec(self):
         filter_spec = jtu.tree_map(lambda _: False, self)
         filter_spec = eqx.tree_at(
-                lambda mf: mf.var_params,
-                filter_spec,
-                replace=True,
-            )
+            lambda mf: mf.var_params,
+            filter_spec,
+            replace=True,
+        )
         return filter_spec
 
     @eqx.filter_jit
@@ -87,7 +86,7 @@ class MeanField(Variational):
         @eqx.filter_jit
         def elbo(dyn: Self, n: int, key: Key, data: Any = None):
             # Combine
-            vari = eqx.combine(dyn,static)
+            vari = eqx.combine(dyn, static)
 
             # Sample draws from variational distribution
             draws: Array = vari.sample(n, key)

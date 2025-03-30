@@ -20,7 +20,9 @@ class Planar(Flow):
     """
 
     params: Dict[str, Float[Array, "..."]]
-    constraints: Dict[str, Callable[[Float[Array, "..."]], Float[Array, "..."]]] = eqx.field(static=True)
+    constraints: Dict[str, Callable[[Float[Array, "..."]], Float[Array, "..."]]] = (
+        eqx.field(static=True)
+    )
     smooth_map: Callable[[Scalar], Scalar] = eqx.field(static=True)
     smooth_der: Callable[[Scalar], Scalar] = eqx.field(static=True)
 
@@ -34,7 +36,7 @@ class Planar(Flow):
         self.params = {
             "w": jnp.repeat(jnp.array(0.0), dim),
             "b": jnp.array(0.0),
-            'u': jnp.repeat(jnp.array(0.0), dim)
+            "u": jnp.repeat(jnp.array(0.0), dim),
         }
         self.constraints = {}
 
@@ -69,7 +71,7 @@ class Planar(Flow):
         """
         params = self.constrain()
 
-        return (draws  - params["shift"] ) / params["scale"]
+        return (draws - params["shift"]) / params["scale"]
 
     @partial(jax.vmap, in_axes=(None, 0))
     @eqx.filter_jit

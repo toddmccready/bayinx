@@ -59,47 +59,22 @@ class NormalizingFlow(Variational):
 
         return draws
 
-    @eqx.filter_jit
-    def eval(self, draws: Array):
-        """
-        Evaluate the variational density at `draws`.
-
-        # Parameters
-        - `draws`: Variational draws.
-
-        # Returns
-        A JAX Array containing the variational density for each draw.
-        """
-        ladj = jnp.array(0.0)
-
-        for map in reversed(self.flows):
-            # Apply inverse transformation
-            draws = map.reverse(draws)
-
-            # Evaluate adjustment
-            ladj = ladj + map.inverse_ladj(draws)
-
-        # Evaluate base density
-        variational_evals = self.base.eval(draws)
-
-        return variational_evals + ladj
 
     @eqx.filter_jit
-    def _eval(self, draws: Array, data = None):
-        variational_evals = self.base.eval(draws)
+    def eval(self, base_draws: Array, data = None):
+        variational_evals = self.base.eval(base_draws)
 
         for map in self.flows:
             # Evaluate adjustment
-            variational_evals = variational_evals + map.inverse_ladj(draws)
+            variational_evals = variational_evals - map.ladj(base_draws)
 
             # Apply forward transformation
-            draws = map.forward(draws)
+            draws = map.forward(base_draws)
 
         posterior_evals = self.eval_model(draws, data)
 
         return jnp.mean(posterior_evals - variational_evals)
 
-    @eqx.filter_jit
     def filter_spec(self):
         # Only optimize the parameters of the flows
         filter_spec = jtu.tree_map(lambda _: False, self)
@@ -108,6 +83,7 @@ class NormalizingFlow(Variational):
             filter_spec,
             replace=True,
         )
+
         return filter_spec
 
     @eqx.filter_jit
@@ -125,10 +101,10 @@ class NormalizingFlow(Variational):
             self = eqx.combine(dyn,static)
 
             # Sample draws from variational distribution
-            draws: Array = self.sample(n, key)
+            draws: Array = self.base.sample(n, key)
 
             # Evaluate ELBO
-            return self._eval(draws, data)
+            return self.eval(draws, data)
 
         return elbo(dyn, n, key, data)
 

@@ -19,7 +19,9 @@ class ElementwiseAffine(Flow):
     """
 
     params: Dict[str, Float[Array, "..."]]
-    constraints: Dict[str, Callable[[Float[Array, "..."]], Float[Array, "..."]]] = eqx.field(static=True)
+    constraints: Dict[str, Callable[[Float[Array, "..."]], Float[Array, "..."]]] = (
+        eqx.field(static=True)
+    )
 
     def __init__(self, dim: int):
         """
@@ -49,24 +51,9 @@ class ElementwiseAffine(Flow):
 
         return draws * params["scale"] + params["shift"]
 
-    @eqx.filter_jit
-    def reverse(self, draws: Array) -> Array:
-        """
-        Applies the reverse elementwise affine transformation for each draw.
-
-        # Parameters
-        - `draws`: A collection of variational draws.
-
-        # Returns
-        The transformed samples.
-        """
-        params = self.constrain()
-
-        return (draws  - params["shift"] ) / params["scale"]
-
     @partial(jax.vmap, in_axes=(None, 0))
     @eqx.filter_jit
-    def inverse_ladj(self, draws: Array) -> Array:
+    def ladj(self, draws: Array) -> Array:
         """
         Computes the log-absolute-determinant of the Jacobian for each draw of the reverse transformation.
 
@@ -78,4 +65,4 @@ class ElementwiseAffine(Flow):
         """
 
         params = self.constrain()
-        return -jnp.log(params["scale"]).sum()
+        return jnp.log(params["scale"]).sum()

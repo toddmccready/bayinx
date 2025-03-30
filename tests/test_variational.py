@@ -42,7 +42,10 @@ def test_meanfield(benchmark):
     vari = vari.fit(10000)
 
     # Assert parameters are roughly correct
-    assert abs(10.0 - vari.var_params["mean"]) < 0.01 and abs(0.0 - vari.var_params['log_std']) < 0.01
+    assert (
+        abs(10.0 - vari.var_params["mean"]) < 0.01
+        and abs(0.0 - vari.var_params["log_std"]) < 0.01
+    )
 
 
 def test_normalizingflow(benchmark):
@@ -74,5 +77,7 @@ def test_normalizingflow(benchmark):
     benchmark(vari.fit, 10000)
     vari = vari.fit(10000)
 
-    # Assert parameters are roughly correct
-    assert abs(10.0 - vari.flows[0].params["shift"]) < 0.01 and abs(0.0 - vari.flows[0].params["scale"]) < 0.01
+    assert (
+        abs(10.0 - vari.flows[0].params["shift"]) < 0.01
+        and abs(0.0 - vari.flows[0].params["scale"]) < 0.01
+    )
