@@ -46,7 +46,7 @@ class NormalizingFlow(Variational):
         self.flows = flows
 
     @eqx.filter_jit
-    def sample(self, n: int, key: Key):
+    def sample(self, n: int, key: Key = jr.PRNGKey(0)):
         """
         Sample from the variational distribution `n` times.
         """
@@ -61,19 +61,31 @@ class NormalizingFlow(Variational):
 
 
     @eqx.filter_jit
-    def eval(self, base_draws: Array, data = None):
-        variational_evals = self.base.eval(base_draws)
+    def eval(self, draws: Array, data = None):
+        """
+        Evaluate the posterior and variational densities at the transformed `draws`.
+
+        # Parameters
+        - `draws`: Draws from the base variational distribution.
+        - `data`: Any data required to evaluate the posterior density(if available).
+
+        # Returns
+        The posterior and variational densities.
+        """
+        # Evaluate base density
+        variational_evals = self.base.eval(draws)
 
         for map in self.flows:
             # Evaluate adjustment
-            variational_evals = variational_evals - map.ladj(base_draws)
+            variational_evals = variational_evals - map.ladj(draws)
 
             # Apply forward transformation
-            draws = map.forward(base_draws)
+            draws = map.forward(draws)
 
+        # Evaluate posterior at final variational draws
         posterior_evals = self.eval_model(draws, data)
 
-        return jnp.mean(posterior_evals - variational_evals)
+        return posterior_evals, variational_evals
 
     def filter_spec(self):
         # Only optimize the parameters of the flows
@@ -103,8 +115,9 @@ class NormalizingFlow(Variational):
             # Sample draws from variational distribution
             draws: Array = self.base.sample(n, key)
 
+            posterior_evals, variational_evals = self.eval(draws, data)
             # Evaluate ELBO
-            return self.eval(draws, data)
+            return jnp.mean(posterior_evals - variational_evals)
 
         return elbo(dyn, n, key, data)
 
@@ -130,15 +143,15 @@ class NormalizingFlow(Variational):
         - `key`: A PRNG key.
         """
         # Construct scheduler
-        schedule: Schedule = opx.exponential_decay(
+        schedule: Schedule = opx.cosine_decay_schedule(
             init_value=learning_rate,
-            transition_steps=max_iters,
-            decay_rate=1 / max_iters,
+            decay_steps=max_iters
         )
 
         # Initialize optimizer
         optim: GradientTransformation = opx.chain(
-            opx.scale(-1.0), opx.adam(schedule, b1=0.9, b2=0.99, nesterov=True)
+            opx.scale(-1.0),
+            opx.nadam(schedule)
         )
         opt_state: OptState = optim.init(eqx.filter(self, self.filter_spec()))
 

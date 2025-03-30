@@ -46,7 +46,7 @@ class MeanField(Variational):
         }
 
     @eqx.filter_jit
-    def sample(self, n: int, key: Key) -> Array:
+    def sample(self, n: int, key: Key = jr.PRNGKey(0)) -> Array:
         # Sample variational draws
         draws: Array = (
             jr.normal(key=key, shape=(n, self.var_params["mean"].size))
@@ -132,7 +132,7 @@ class MeanField(Variational):
 
         # Initialize optimizer
         optim: GradientTransformation = opx.chain(
-            opx.scale(-1.0), opx.adam(schedule, b1=0.9, b2=0.99, nesterov=True)
+            opx.scale(-1.0), opx.nadam(schedule)
         )
         opt_state: OptState = optim.init(eqx.filter(self, self.filter_spec()))
 

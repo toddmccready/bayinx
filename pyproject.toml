@@ -16,3 +16,6 @@ dependencies = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+addopts = "-q --benchmark-max-time=10 --benchmark-calibration-precision=10000 --benchmark-columns=rounds,mean,median,stddev"

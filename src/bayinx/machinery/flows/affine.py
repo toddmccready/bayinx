@@ -9,9 +9,9 @@ from jaxtyping import Array, Float
 from bayinx.core import Flow
 
 
-class ElementwiseAffine(Flow):
+class Affine(Flow):
     """
-    An elementwise affine diffeomorphism.
+    An affine diffeomorphism.
 
     # Attributes
     - `params`: A dictionary containing the JAX Arrays representing the scale and shift parameters.
@@ -25,44 +25,45 @@ class ElementwiseAffine(Flow):
 
     def __init__(self, dim: int):
         """
-        Initializes an elementwise affine diffeomorphism.
+        Initializes an affine diffeomorphism.
 
         # Parameters
         - `dim`: The dimension of the parameter space of interest.
         """
         self.params = {
-            "shift": jnp.repeat(jnp.array(0.0), dim),
-            "scale": jnp.repeat(jnp.array(0.0), dim),
+            "shift": jnp.zeros(dim),
+            "scale": jnp.zeros((dim, dim)),
         }
-        self.constraints = {"scale": jnp.exp}
+
+        self.constraints = {"scale": lambda m: jnp.tril(jnp.exp(m))}
 
     @eqx.filter_jit
     def forward(self, draws: Array) -> Array:
         """
-        Applies the forward elementwise affine transformation for each draw.
+        Applies the forward affine transformation for each draw.
 
         # Parameters
-        - `draws`: A collection of variational draws.
+        - `draws`: Draws from some layer of a normalizing flow.
 
         # Returns
         The transformed samples.
         """
         params = self.constrain()
 
-        return draws * params["scale"] + params["shift"]
+        return draws @ params["scale"] + params["shift"]
 
     @partial(jax.vmap, in_axes=(None, 0))
     @eqx.filter_jit
     def ladj(self, draws: Array) -> Array:
         """
-        Computes the log-absolute-determinant of the Jacobian for each draw of the reverse transformation.
+        Computes the log-absolute-determinant of the Jacobian of the forward transformation for each draw.
 
         # Parameters
-        - `draws`: Variational draws.
+        - `draws`: Draws from some layer of a normalizing flow.
 
         # Returns
-        The log-absolute-determinant of the Jacobian.
+        The log-absolute-determinant of the Jacobian per-draw.
         """
 
         params = self.constrain()
-        return jnp.log(params["scale"]).sum()
+        return jnp.log(jnp.diag(params["scale"])).sum()

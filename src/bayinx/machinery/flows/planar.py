@@ -4,87 +4,70 @@ from typing import Callable, Dict
 import equinox as eqx
 import jax
 import jax.numpy as jnp
-from jaxtyping import Array, Float, Scalar
+import jax.random as jr
+from jaxtyping import Array, Float
 
 from bayinx.core import Flow
 
 
 class Planar(Flow):
     """
-    An elementwise affine diffeomorphism.
+    A Planar flow diffeomorphism.
 
     # Attributes
-    - `params`: A dictionary containing the JAX Arrays representing the scale and shift parameters.
+    - `params`: A dictionary containing the JAX Arrays representing the flow parameters.
     - `constraints`: A dictionary of constraining transformations.
-    - `transform`: An elementwise monotonic
     """
 
     params: Dict[str, Float[Array, "..."]]
     constraints: Dict[str, Callable[[Float[Array, "..."]], Float[Array, "..."]]] = (
         eqx.field(static=True)
     )
-    smooth_map: Callable[[Scalar], Scalar] = eqx.field(static=True)
-    smooth_der: Callable[[Scalar], Scalar] = eqx.field(static=True)
 
-    def __init__(self, dim: int, smooth_map: Callable[[Scalar], Scalar] = lambda x: x):
+    def __init__(self, dim: int, key = jr.PRNGKey(0)):
         """
-        Initializes an elementwise affine diffeomorphism.
+        Initializes a Planar flow diffeomorphism.
 
         # Parameters
         - `dim`: The dimension of the parameter space of interest.
         """
         self.params = {
-            "w": jnp.repeat(jnp.array(0.0), dim),
-            "b": jnp.array(0.0),
-            "u": jnp.repeat(jnp.array(0.0), dim),
+            "u": jr.normal(key, (dim,)),
+            "w": jr.normal(key, (dim,)),
+            "b": jr.normal(key, (1,)),
         }
-        self.constraints = {}
-
-        self.smooth_map = smooth_map
-        self.smooth_der = jax.grad(jax.jit(smooth_map))
+        self.constraints = {}  # Consider constraints for invertibility
 
     @eqx.filter_jit
     def forward(self, draws: Array) -> Array:
         """
-        Applies the forward transformation for each draw.
+        Applies the forward planar transformation for each draw.
 
         # Parameters
-        - `draws`: A collection of variational draws.
+        - `draws`: Draws from some layer of a normalizing flow.
 
         # Returns
         The transformed samples.
         """
         params = self.constrain()
-
-        return draws * params["scale"] + params["shift"]
-
-    @eqx.filter_jit
-    def reverse(self, draws: Array) -> Array:
-        """
-        Applies the reverse elementwise affine transformation for each draw.
-
-        # Parameters
-        - `draws`: A collection of variational draws.
-
-        # Returns
-        The transformed samples.
-        """
-        params = self.constrain()
-
-        return (draws - params["shift"]) / params["scale"]
+        activation = jnp.tanh(jnp.dot(draws, params["w"]) + params["b"])
+        return draws + params["u"] * activation[:, None]
 
     @partial(jax.vmap, in_axes=(None, 0))
     @eqx.filter_jit
-    def inverse_ladj(self, draws: Array) -> Array:
+    def ladj(self, draws: Array) -> Array:
         """
-        Computes the log-absolute-determinant of the Jacobian for each draw of the reverse transformation.
+        Computes the log-absolute-determinant of the Jacobian of the forward transformation for each draw.
 
         # Parameters
-        - `draws`: A collection of variational draws.
+        - `draws`: Draws from some layer of a normalizing flow.
 
         # Returns
-        The log-absolute-determinant of the Jacobian.
+        The log-absolute-determinant of the Jacobian per-draw.
         """
-
         params = self.constrain()
-        return -jnp.log(params["scale"]).sum()
+
+        # Compute derivative of nonlinear function
+        h_prime = 1 - jnp.square(jnp.tanh(jnp.dot(draws, params["w"]) + params["b"]))
+
+        return jnp.log(jnp.abs(1 + jnp.dot(params["u"], params["w"]) * h_prime))
