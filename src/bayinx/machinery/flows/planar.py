@@ -50,8 +50,8 @@ class Planar(Flow):
         The transformed samples.
         """
         params = self.constrain()
-        activation = jnp.tanh(jnp.dot(draws, params["w"]) + params["b"])
-        return draws + params["u"] * activation[:, None]
+
+        return draws + params["u"] * jnp.tanh(jnp.dot(draws, params["w"]) + params["b"])
 
     @partial(jax.vmap, in_axes=(None, 0))
     @eqx.filter_jit
