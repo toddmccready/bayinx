@@ -5,7 +5,7 @@ import jax.flatten_util as jfu
 import jax.numpy as jnp
 import jax.random as jr
 import jax.tree_util as jtu
-from jaxtyping import Array, Float, Key, PyTree, Scalar
+from jaxtyping import Array, Float, Key, Scalar
 
 from bayinx.core import Flow, Model, Variational
 
@@ -113,15 +113,10 @@ class NormalizingFlow(Variational):
         return filter_spec
 
     @eqx.filter_jit
-    def elbo(
-        self,
-        n: int,
-        key: Key,
-        data: Any = None) -> Tuple[Scalar, PyTree]:
+    def elbo(self, n: int, key: Key, data: Any = None) -> Scalar:
         # Partition
         dyn, static = eqx.partition(self, self.filter_spec())
 
-        @eqx.filter_value_and_grad
         @eqx.filter_jit
         def elbo(dyn: Self, n: int, key: Key, data: Any = None):
             # Combine
@@ -135,3 +130,23 @@ class NormalizingFlow(Variational):
             return jnp.mean(posterior_evals - variational_evals)
 
         return elbo(dyn, n, key, data)
+
+    @eqx.filter_jit
+    def elbo_grad(self, n: int, key: Key, data: Any = None) -> Self:
+        # Partition
+        dyn, static = eqx.partition(self, self.filter_spec())
+
+        @eqx.filter_grad
+        @eqx.filter_jit
+        def elbo_grad(dyn: Self, n: int, key: Key, data: Any = None):
+            # Combine
+            self = eqx.combine(dyn, static)
+
+            # Sample draws from variational distribution
+            draws: Array = self.base.sample(n, key)
+
+            posterior_evals, variational_evals = self._eval(draws, data)
+            # Evaluate ELBO
+            return jnp.mean(posterior_evals - variational_evals)
+
+        return elbo_grad(dyn, n, key, data)

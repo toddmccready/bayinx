@@ -7,7 +7,7 @@ import jax.lax as lax
 import jax.numpy as jnp
 import jax.random as jr
 import optax as opx
-from jaxtyping import Array, Float, Key, Scalar
+from jaxtyping import Array, Float, Key, PyTree, Scalar
 from optax import GradientTransformation, OptState, Schedule
 
 from bayinx.core import Model
@@ -47,6 +47,13 @@ class Variational(eqx.Module):
         pass
 
     @abstractmethod
+    def elbo_grad(self, n: int, key: Key, data: Any = None) -> PyTree:
+        """
+        Evaluate the gradient of the ELBO.
+        """
+        pass
+
+    @abstractmethod
     def filter_spec(self):
         """
         Filter specification for dynamic and static components of the `Variational`.
@@ -75,7 +82,6 @@ class Variational(eqx.Module):
 
             # Evaluate posterior density
             return model.eval(data)
-
         cls.eval_model = jax.vmap(eqx.filter_jit(eval_model), (None, 0, None))
 
         def fit(
@@ -128,8 +134,8 @@ class Variational(eqx.Module):
                 # Update PRNG key
                 key, _ = jr.split(key)
 
-                # Compute ELBO and gradient
-                _, updates = self.elbo(var_draws, key, data)
+                # Compute gradient of the ELBO
+                updates: PyTree = self.elbo_grad(var_draws, key, data)
 
                 # Compute updates
                 updates, opt_state = optim.update(
@@ -149,5 +155,4 @@ class Variational(eqx.Module):
             )[0]
 
             return self
-
         cls.fit = eqx.filter_jit(fit)

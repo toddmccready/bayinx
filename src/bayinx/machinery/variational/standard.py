@@ -62,3 +62,6 @@ class Standard(Variational):
 
     def elbo(self):
         return None
+
+    def elbo_grad(self):
+        return None
