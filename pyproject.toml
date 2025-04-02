@@ -18,4 +18,4 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
-addopts = "-q --benchmark-min-rounds=20 --benchmark-columns=rounds,mean,median,stddev"
+addopts = "-q --benchmark-min-rounds=30 --benchmark-columns=rounds,mean,median,stddev"

@@ -9,7 +9,7 @@ from bayinx.core.utils import __MyMeta
 
 class Model(eqx.Module, metaclass=__MyMeta):
     """
-    A probabilistic model.
+    A superclass used to define probabilistic models.
 
     # Attributes
     - `params`: A dictionary of JAX Arrays representing parameters of the model.

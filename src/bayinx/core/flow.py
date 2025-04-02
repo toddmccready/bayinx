@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Callable, Dict
+from typing import Callable, Dict, Tuple
 
 import equinox as eqx
 from jaxtyping import Array, Float
@@ -9,7 +9,7 @@ from bayinx.core.utils import __MyMeta
 
 class Flow(eqx.Module, metaclass=__MyMeta):
     """
-    A continuously parameterized diffeomorphism.
+    A superclass used to define continuously parameterized diffeomorphisms for normalizing flows.
 
     # Attributes
     - `pars`: A dictionary of JAX Arrays representing parameters of the diffeomorphism.
@@ -27,12 +27,12 @@ class Flow(eqx.Module, metaclass=__MyMeta):
         pass
 
     @abstractmethod
-    def ladj(self, draws: Array) -> Array:
+    def transform(self, draws: Array) -> Tuple[Array, Array]:
         """
-        Computes the log-absolute-determinant of the Jacobian at `draws` for the reverse transformation.
+        Computes the log-absolute-determinant of the Jacobian at `draws` and applies the forward transformation.
 
         # Returns
-        A JAX Array containing the log-absolute-determinant of the Jacobians.
+        A tuple of JAX Arrays containing the log-absolute-determinant of the Jacobians and transformed draws.
         """
         pass
 

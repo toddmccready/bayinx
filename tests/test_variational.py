@@ -6,9 +6,8 @@ from jaxtyping import Array
 
 from bayinx import Model
 from bayinx.dists import normal
-from bayinx.machinery import MeanField
-from bayinx.machinery.flows import Affine
-from bayinx.machinery.normalizing_flow import NormalizingFlow
+from bayinx.machinery.variational import MeanField, NormalizingFlow, Standard
+from bayinx.machinery.variational.flows import Affine
 
 
 # Tests ----
@@ -38,13 +37,15 @@ def test_meanfield(benchmark):
     vari = MeanField(model)
 
     # Optimize variational distribution
-    benchmark(vari.fit, 10000)
+    def benchmark_fit():
+        vari.fit(10000)
+
+    benchmark(benchmark_fit)
     vari = vari.fit(10000)
 
     # Assert parameters are roughly correct
-    assert (
-        all(abs(10.0 - vari.var_params["mean"]) < 0.1) and
-        all(abs(0.0 - vari.var_params["log_std"]) < 0.1)
+    assert all(abs(10.0 - vari.var_params["mean"]) < 0.1) and all(
+        abs(0.0 - vari.var_params["log_std"]) < 0.1
     )
 
 
@@ -71,14 +72,17 @@ def test_normalizingflow(benchmark):
     model = NormalDist()
 
     # Construct normalizing flow variational
-    vari = NormalizingFlow(MeanField(model), [Affine(2)], model)
+    vari = NormalizingFlow(Standard(model), [Affine(2)], model)
 
     # Optimize variational distribution
-    benchmark(vari.fit, 10000)
+    def benchmark_fit():
+        vari.fit(10000)
+
+    benchmark(benchmark_fit)
     vari = vari.fit(10000)
 
     params = vari.flows[0].constrain()
     assert (
-        all(abs(10.0 - vari.flows[0].params["shift"]) < 0.1) and
-        (abs(jnp.eye(2) - params["scale"]) < 0.1).all()
+        all(abs(10.0 - vari.flows[0].params["shift"]) < 0.1)
+        and (abs(jnp.eye(2) - params["scale"]) < 0.1).all()
     )

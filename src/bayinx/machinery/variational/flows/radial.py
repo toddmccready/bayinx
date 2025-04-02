@@ -5,14 +5,15 @@ import equinox as eqx
 import jax
 import jax.numpy as jnp
 import jax.random as jr
+from jax.numpy.linalg import norm
 from jaxtyping import Array, Float
 
 from bayinx.core import Flow
 
 
-class Planar(Flow):
+class Radial(Flow):
     """
-    A Planar flow diffeomorphism.
+    A radial flow.
 
     # Attributes
     - `params`: A dictionary containing the JAX Arrays representing the flow parameters.
@@ -24,24 +25,24 @@ class Planar(Flow):
         eqx.field(static=True)
     )
 
-    def __init__(self, dim: int, key = jr.PRNGKey(0)):
+    def __init__(self, dim: int, key=jr.PRNGKey(0)):
         """
-        Initializes a Planar flow diffeomorphism.
+        Initializes a planar flow.
 
         # Parameters
-        - `dim`: The dimension of the parameter space of interest.
+        - `dim`: The dimension of the parameter space.
         """
         self.params = {
-            "u": jr.normal(key, (dim,)),
-            "w": jr.normal(key, (dim,)),
-            "b": jr.normal(key, (1,)),
+            "alpha": jnp.array(1.0),
+            "_beta": jnp.array(1.0),
+            "center": jnp.ones(dim),
         }
-        self.constraints = {}  # Consider constraints for invertibility
+        self.constraints = {"_beta": jnp.exp}
 
     @eqx.filter_jit
     def forward(self, draws: Array) -> Array:
         """
-        Applies the forward planar transformation for each draw.
+        Applies the forward radial transformation for each draw.
 
         # Parameters
         - `draws`: Draws from some layer of a normalizing flow.
@@ -49,9 +50,18 @@ class Planar(Flow):
         # Returns
         The transformed samples.
         """
+        # Constrain parameters
         params = self.constrain()
 
-        return draws + params["u"] * jnp.tanh(jnp.dot(draws, params["w"]) + params["b"])
+        # Extract parameters
+        alpha = params["alpha"]
+        beta = params["_beta"] - params["alpha"]
+        center = params["center"]
+
+        # Compute distance to center per-draw
+        r: Array = norm(draws - params["center"], axis=1)
+
+        return draws + (beta / (alpha + r)) * (draws - center)
 
     @partial(jax.vmap, in_axes=(None, 0))
     @eqx.filter_jit
@@ -68,6 +78,6 @@ class Planar(Flow):
         params = self.constrain()
 
         # Compute derivative of nonlinear function
-        h_prime = 1 - jnp.square(jnp.tanh(jnp.dot(draws, params["w"]) + params["b"]))
+        h_prime = 1.0 - jnp.square(jnp.tanh(jnp.dot(draws, params["w"]) + params["b"]))
 
-        return jnp.log(jnp.abs(1 + jnp.dot(params["u"], params["w"]) * h_prime))
+        return jnp.log(jnp.abs(1.0 + h_prime * params["u"].dot(params["w"])))
