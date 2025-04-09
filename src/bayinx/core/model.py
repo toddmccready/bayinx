@@ -24,11 +24,8 @@ class Model(eqx.Module, metaclass=__MyMeta):
         pass
 
     def __init_subclass__(cls):
-        """
-        Create constrain method.
-        """
-
-        def constrain(self: Model) -> Dict[str, Array]:
+        # Add constrain method
+        def constrain_pars(self: Model) -> Dict[str, Array]:
             """
             Constrain `params` to the appropriate domain.
 
@@ -42,4 +39,17 @@ class Model(eqx.Module, metaclass=__MyMeta):
 
             return t_params
 
-        cls.constrain = eqx.filter_jit(constrain)
+        cls.constrain_pars = eqx.filter_jit(constrain_pars)
+
+        # Add transform_pars method if not present
+        if not callable(getattr(cls, "transform_pars", None)):
+            def transform_pars(self: Model) -> Dict[str, Array]:
+                """
+                Apply a custom transformation to `params` if needed.
+
+                # Returns
+                A dictionary of transformed JAX Arrays representing the transformed parameters.
+                """
+                return self.constrain_pars()
+
+            cls.transform_pars = eqx.filter_jit(transform_pars)

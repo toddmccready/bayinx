@@ -60,7 +60,6 @@ class Variational(eqx.Module):
         """
         pass
 
-
     def __init_subclass__(cls):
         """
         Construct methods that are shared across all VI methods.
@@ -82,6 +81,7 @@ class Variational(eqx.Module):
 
             # Evaluate posterior density
             return model.eval(data)
+
         cls.eval_model = jax.vmap(eqx.filter_jit(eval_model), (None, 0, None))
 
         def fit(
@@ -155,4 +155,5 @@ class Variational(eqx.Module):
             )[0]
 
             return self
+
         cls.fit = eqx.filter_jit(fit)

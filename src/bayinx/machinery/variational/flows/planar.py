@@ -39,8 +39,9 @@ class Planar(Flow):
         self.constraints = {}
 
     @eqx.filter_jit
+    @partial(jax.vmap, in_axes=(None, 0))
     def forward(self, draws: Array) -> Array:
-        params = self.constrain()
+        params = self.constrain_pars()
 
         # Extract parameters
         w: Array = params["w"]
@@ -54,8 +55,8 @@ class Planar(Flow):
 
     @eqx.filter_jit
     @partial(jax.vmap, in_axes=(None, 0))
-    def transform(self, draws: Array) -> Tuple[Scalar, Array]:
-        params = self.constrain()
+    def adjust_density(self, draws: Array) -> Tuple[Scalar, Array]:
+        params = self.constrain_pars()
 
         # Extract parameters
         w: Array = params["w"]

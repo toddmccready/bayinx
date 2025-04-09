@@ -4,7 +4,8 @@ The endgoal of this project is to build a Bayesian inference library that is sim
 
 In the short-term, I'm going to focus on:
 1) Implementing as much machinery as I feel is enough.
-2) Figuring out how to design the library to automatically recognize what kind of machinery is amenable to a given probabilistic model.
+2) Figuring out how to design the `Model` superclass to have something like the `transformed pars {}` block but unifies transformations and constraints.
+3) Figuring out how to design the library to automatically recognize what kind of machinery is amenable to a given probabilistic model.
 
 In the long-term, I'm going to focus on:
 1) How to get `Stan`-like declarative syntax in Python with minimal syntactic overhead(to get as close as possible to statements like `X ~ Normal(mu, 1)`), while also allowing users to work with `target` directly when needed(same as `Stan` does).
@@ -21,7 +22,6 @@ Additionally, when I get around to it I'd like the package documentation to also
 - Look into adaptively tuning ADAM hyperparameters.
 - Control variates for meanfield VI? Look at https://proceedings.mlr.press/v33/ranganath14.html more closely.
 - Low-rank affine flow?
-- Finish radial implementation.
-- Constrain planar flow to always be invertible.
 - https://arxiv.org/pdf/1803.05649 implement sylvester flows.
 - Learn how to generate documentation lol.
+- Figure out how to make transform_pars for flows such that there is no performance loss. Noticing some weird behaviour when adding constraints.

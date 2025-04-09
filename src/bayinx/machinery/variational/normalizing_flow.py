@@ -65,7 +65,7 @@ class NormalizingFlow(Variational):
 
         for map in self.flows:
             # Compute adjustment
-            ladj, draws = map.transform(draws)
+            ladj, draws = map.adjust_density(draws)
 
             # Adjust variational density
             variational_evals = variational_evals - ladj
@@ -91,7 +91,7 @@ class NormalizingFlow(Variational):
 
         for map in self.flows:
             # Compute adjustment
-            ladj, draws = map.transform(draws)
+            ladj, draws = map.adjust_density(draws)
 
             # Adjust variational density
             variational_evals = variational_evals - ladj

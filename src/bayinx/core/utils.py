@@ -15,7 +15,7 @@ class __MyMeta(type(eqx.Module)):
         # Check parameters are a Dict of JAX Arrays
         if not isinstance(obj.params, Dict):
             raise ValueError(
-                f"Model {cls.__name__} must initialize 'params' as a Dict."
+                f"Model {cls.__name__} must initialize 'params' as a dictionary."
             )
 
         for key, value in obj.params.items():
@@ -25,7 +25,7 @@ class __MyMeta(type(eqx.Module)):
         # Check constraints are a Dict of functions
         if not isinstance(obj.constraints, Dict):
             raise ValueError(
-                f"Model {cls.__name__} must initialize 'constraints' as a Dict."
+                f"Model {cls.__name__} must initialize 'constraints' as a dictionary."
             )
 
         for key, value in obj.constraints.items():
@@ -33,7 +33,7 @@ class __MyMeta(type(eqx.Module)):
                 raise TypeError(f"Constraint for parameter '{key}' must be a function.")
 
         # Check that the constrain method returns a dict equivalent to `params`
-        t_params: Dict[str, Array] = obj.constrain()
+        t_params: Dict[str, Array] = obj.constrain_pars()
 
         if not isinstance(t_params, Dict):
             raise ValueError(
@@ -48,5 +48,7 @@ class __MyMeta(type(eqx.Module)):
                 raise ValueError(
                     f"Constrained parameter '{key}' must have same shape as unconstrained counterpart."
                 )
+
+        # Check transform_pars
 
         return obj

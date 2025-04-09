@@ -76,7 +76,7 @@ class MeanField(Variational):
         """
         Estimate the ELBO and its gradient(w.r.t the variational parameters).
         """
-        # Partition
+        # Partition variational
         dyn, static = eqx.partition(self, self.filter_spec())
 
         @eqx.filter_jit
@@ -100,9 +100,6 @@ class MeanField(Variational):
 
     @eqx.filter_jit
     def elbo_grad(self, n: int, key: Key, data: Any = None) -> Self:
-        """
-        Estimate the ELBO and its gradient(w.r.t the variational parameters).
-        """
         # Partition
         dyn, static = eqx.partition(self, self.filter_spec())
 

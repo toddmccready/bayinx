@@ -1,12 +1,12 @@
 from functools import partial
-from typing import Callable, Dict
+from typing import Callable, Dict, Tuple
 
 import equinox as eqx
 import jax
 import jax.numpy as jnp
 import jax.random as jr
 from jax.numpy.linalg import norm
-from jaxtyping import Array, Float
+from jaxtyping import Array, Float, Scalar
 
 from bayinx.core import Flow
 
@@ -34,11 +34,12 @@ class Radial(Flow):
         """
         self.params = {
             "alpha": jnp.array(1.0),
-            "_beta": jnp.array(1.0),
+            "beta": jnp.array(1.0),
             "center": jnp.ones(dim),
         }
-        self.constraints = {"_beta": jnp.exp}
+        self.constraints = {"beta": jnp.exp}
 
+    @partial(jax.vmap, in_axes=(None, 0))
     @eqx.filter_jit
     def forward(self, draws: Array) -> Array:
         """
@@ -50,34 +51,45 @@ class Radial(Flow):
         # Returns
         The transformed samples.
         """
-        # Constrain parameters
-        params = self.constrain()
+        params = self.transform_pars()
 
         # Extract parameters
         alpha = params["alpha"]
-        beta = params["_beta"] - params["alpha"]
+        beta = params["beta"]
         center = params["center"]
 
         # Compute distance to center per-draw
-        r: Array = norm(draws - params["center"], axis=1)
+        r: Array = norm(draws - center)
 
-        return draws + (beta / (alpha + r)) * (draws - center)
+        # Apply forward transformation
+        draws = draws + (beta / (alpha + r)) * (draws - center)
+
+        return draws
 
     @partial(jax.vmap, in_axes=(None, 0))
     @eqx.filter_jit
-    def ladj(self, draws: Array) -> Array:
-        """
-        Computes the log-absolute-determinant of the Jacobian of the forward transformation for each draw.
+    def adjust_density(self, draws: Array) -> Tuple[Scalar, Array]:
+        params = self.transform_pars()
 
-        # Parameters
-        - `draws`: Draws from some layer of a normalizing flow.
+        # Extract parameters
+        alpha = params["alpha"]
+        beta = params["beta"]
+        center = params["center"]
 
-        # Returns
-        The log-absolute-determinant of the Jacobian per-draw.
-        """
-        params = self.constrain()
+        # Compute distance to center per-draw
+        r: Array = norm(draws - center)
 
-        # Compute derivative of nonlinear function
-        h_prime = 1.0 - jnp.square(jnp.tanh(jnp.dot(draws, params["w"]) + params["b"]))
+        # Compute shared intermediates
+        x: Array = beta / (alpha + r)
 
-        return jnp.log(jnp.abs(1.0 + h_prime * params["u"].dot(params["w"])))
+        # Apply forward transformation
+        draws = draws + (x) * (draws - center)
+
+        # Compute density adjustment
+        ladj = jnp.log(
+            jnp.abs(
+                (1.0 + alpha * beta / (alpha + r) ** 2.0) * (1.0 + x) ** (center.size - 1.0)
+            )
+        )
+
+        return ladj, draws
