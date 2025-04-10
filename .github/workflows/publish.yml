@@ -1,15 +1,14 @@
-# publish.yml
-
 name: "Publish"
 
 on:
   release:
-    types: ["published"]
 
 jobs:
   run:
     name: "Build and publish release"
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Required for trusted publishing
 
     steps:
       - uses: actions/checkout@v4
@@ -18,13 +17,12 @@ jobs:
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-          cache-dependency-glob: uv.lock
 
       - name: Set up Python
-        run: uv python install 3.12 # Or whatever version I want to use.
+        run: uv python install 3.12
 
       - name: Build
         run: uv build
 
       - name: Publish
-        run: uv publish -t ${{ secrets.PYPI_TOKEN }}
+        run: uv publish
