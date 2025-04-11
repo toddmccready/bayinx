@@ -34,12 +34,12 @@ class MeanField(Variational):
         params, self._constraints = eqx.partition(model, model.filter_spec())
 
         # Flatten params component
-        flat_params, self._unflatten = ravel_pytree(params)
+        params, self._unflatten = ravel_pytree(params)
 
         # Initialize variational parameters
         self.var_params = {
-            "mean": flat_params,
-            "log_std": jnp.zeros(flat_params.size, dtype=flat_params.dtype),
+            "mean": params,
+            "log_std": jnp.zeros(params.size, dtype=params.dtype),
         }
 
     @eqx.filter_jit

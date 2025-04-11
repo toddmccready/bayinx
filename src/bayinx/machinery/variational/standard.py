@@ -13,7 +13,7 @@ from bayinx.dists import normal
 
 class Standard(Variational):
     """
-    A standard normal distribution approximation to a posterior distribution.
+    A standard normal approximation to a posterior distribution.
 
     # Attributes
     - `dim`: Dimension of the parameter space.

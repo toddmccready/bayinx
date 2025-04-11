@@ -39,7 +39,7 @@ class NormalizingFlow(Variational):
         params, self._constraints = eqx.partition(model, eqx.is_array)
 
         # Flatten params component
-        flat_params, self._unflatten = jfu.ravel_pytree(params)
+        _, self._unflatten = jfu.ravel_pytree(params)
 
         self.base = base
         self.flows = flows
