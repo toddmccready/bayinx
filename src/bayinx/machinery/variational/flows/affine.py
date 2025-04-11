@@ -19,9 +19,7 @@ class Affine(Flow):
     """
 
     params: Dict[str, Float[Array, "..."]]
-    constraints: Dict[str, Callable[[Float[Array, "..."]], Float[Array, "..."]]] = (
-        eqx.field(static=True)
-    )
+    constraints: Dict[str, Callable[[Float[Array, "..."]], Float[Array, "..."]]]
 
     def __init__(self, dim: int):
         """

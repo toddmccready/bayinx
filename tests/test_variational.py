@@ -16,7 +16,7 @@ from bayinx.machinery.variational.flows.radial import Radial
 # Tests ----
 @pytest.mark.parametrize("var_draws", [1, 10, 100])
 def test_meanfield(benchmark, var_draws):
-    # Construct model
+    # Construct model definition
     class NormalDist(Model):
         params: Dict[str, Array]
         constraints: Dict[str, Callable[[Array], Array]]
@@ -35,6 +35,7 @@ def test_meanfield(benchmark, var_draws):
                 normal.logprob(x=params["mu"], mu=jnp.array(10.0), sigma=jnp.array(1.0))
             )
 
+    # Construct model
     model = NormalDist()
 
     # Construct meanfield variational
@@ -42,7 +43,7 @@ def test_meanfield(benchmark, var_draws):
 
     # Optimize variational distribution
     def benchmark_fit():
-        vari.fit(10000, var_draws = var_draws)
+        vari.fit(10000, var_draws=var_draws)
 
     benchmark(benchmark_fit)
     vari = vari.fit(10000)
@@ -55,7 +56,7 @@ def test_meanfield(benchmark, var_draws):
 
 @pytest.mark.parametrize("var_draws", [1, 10, 100])
 def test_affine(benchmark, var_draws):
-    # Construct model
+    # Construct model definition
     class NormalDist(Model):
         params: Dict[str, Array]
         constraints: Dict[str, Callable[[Array], Array]]
@@ -74,6 +75,7 @@ def test_affine(benchmark, var_draws):
                 normal.logprob(x=params["mu"], mu=jnp.array(10.0), sigma=jnp.array(1.0))
             )
 
+    # Construct model
     model = NormalDist()
 
     # Construct normalizing flow variational
@@ -81,7 +83,7 @@ def test_affine(benchmark, var_draws):
 
     # Optimize variational distribution
     def benchmark_fit():
-        vari.fit(10000, var_draws = var_draws)
+        vari.fit(10000, var_draws=var_draws)
 
     benchmark(benchmark_fit)
     vari = vari.fit(10000)
@@ -94,7 +96,7 @@ def test_affine(benchmark, var_draws):
 
 @pytest.mark.parametrize("var_draws", [1, 10, 100])
 def test_flows(benchmark, var_draws):
-    # Construct model
+    # Construct model definition
     class NormalDist(Model):
         params: Dict[str, Array]
         constraints: Dict[str, Callable[[Array], Array]]
@@ -113,14 +115,17 @@ def test_flows(benchmark, var_draws):
                 normal.logprob(x=params["mu"], mu=jnp.array(10.0), sigma=jnp.array(1.0))
             )
 
+    # Construct model
     model = NormalDist()
 
     # Construct normalizing flow variational
-    vari = NormalizingFlow(Standard(model), [Planar(2), Radial(2), Planar(2), Radial(2), Planar(2)], model)
+    vari = NormalizingFlow(
+        Standard(model), [Planar(2), Radial(2), Planar(2), Radial(2), Planar(2)], model
+    )
 
     # Optimize variational distribution
     def benchmark_fit():
-        vari.fit(10000, var_draws = var_draws)
+        vari.fit(10000, var_draws=var_draws)
 
     benchmark(benchmark_fit)
     vari = vari.fit(10000)

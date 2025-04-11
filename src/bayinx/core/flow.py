@@ -2,6 +2,7 @@ from abc import abstractmethod
 from typing import Callable, Dict, Self, Tuple
 
 import equinox as eqx
+import jax.tree_util as jtu
 from jaxtyping import Array, Float
 
 from bayinx.core.utils import __MyMeta
@@ -36,33 +37,46 @@ class Flow(eqx.Module, metaclass=__MyMeta):
         """
         pass
 
-    def __init_subclass__(cls):
-        # Add contrain_pars method
-        def constrain_pars(self: Self):
-            """
-            Constrain `params` to the appropriate domain.
+    # Default filter specification
+    def filter_spec(self):
+        """
+        Generates a filter specification to subset relevant parameters for the flow.
+        """
+        # Generate empty specification
+        filter_spec = jtu.tree_map(lambda _: False, self)
 
-            # Returns
-            A dictionary of transformed JAX Arrays representing the constrained parameters.
-            """
-            t_params = self.params
+        # Specify JAX Array parameters
+        filter_spec = eqx.tree_at(
+            lambda flow: flow.params,
+            filter_spec,
+            replace=jtu.tree_map(eqx.is_array, self.params),
+        )
 
-            for par, map in self.constraints.items():
-                t_params[par] = map(t_params[par])
 
-            return t_params
+        return filter_spec
 
-        cls.constrain_pars = eqx.filter_jit(constrain_pars)
+    @eqx.filter_jit
+    def constrain_pars(self: Self):
+        """
+        Constrain `params` to the appropriate domain.
 
-        # Add transform_pars method if not present
-        if not callable(getattr(cls, "transform_pars", None)):
-            def transform_pars(self: Self) -> Dict[str, Array]:
-                """
-                Apply a custom transformation to `params` if needed.
+        # Returns
+        A dictionary of transformed JAX Arrays representing the constrained parameters.
+        """
+        t_params = self.params
 
-                # Returns
-                A dictionary of transformed JAX Arrays representing the transformed parameters.
-                """
-                return self.constrain_pars()
+        for par, map in self.constraints.items():
+            t_params[par] = map(t_params[par])
 
-            cls.transform_pars = eqx.filter_jit(transform_pars)
+
+        return t_params
+
+    @eqx.filter_jit
+    def transform_pars(self: Self) -> Dict[str, Array]:
+        """
+        Apply a custom transformation to `params` if needed.
+
+        # Returns
+        A dictionary of transformed JAX Arrays representing the transformed parameters.
+        """
+        return self.constrain_pars()

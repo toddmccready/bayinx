@@ -104,6 +104,9 @@ class Variational(eqx.Module):
             - `var_draws`: Number of variational draws to draw each iteration.
             - `key`: A PRNG key.
             """
+            # Partition variational
+            dyn, static = eqx.partition(self, self.filter_spec())
+
             # Construct scheduler
             schedule: Schedule = opx.cosine_decay_schedule(
                 init_value=learning_rate, decay_steps=max_iters
@@ -113,20 +116,20 @@ class Variational(eqx.Module):
             optim: GradientTransformation = opx.chain(
                 opx.scale(-1.0), opx.nadam(schedule)
             )
-            opt_state: OptState = optim.init(eqx.filter(self, self.filter_spec()))
+            opt_state: OptState = optim.init(dyn)
 
             # Optimization loop helper functions
             @eqx.filter_jit
             def condition(state: Tuple[Self, OptState, Scalar, Key]):
                 # Unpack iteration state
-                self, opt_state, i, key = state
+                dyn, opt_state, i, key = state
 
                 return i < max_iters
 
             @eqx.filter_jit
             def body(state: Tuple[Self, OptState, Scalar, Key]):
                 # Unpack iteration state
-                self, opt_state, i, key = state
+                dyn, opt_state, i, key = state
 
                 # Update iteration
                 i = i + 1
@@ -134,26 +137,30 @@ class Variational(eqx.Module):
                 # Update PRNG key
                 key, _ = jr.split(key)
 
+                # Combine variational
+                vari = eqx.combine(dyn, static)
+
                 # Compute gradient of the ELBO
-                updates: PyTree = self.elbo_grad(var_draws, key, data)
+                updates: PyTree = vari.elbo_grad(var_draws, key, data)
 
                 # Compute updates
                 updates, opt_state = optim.update(
-                    updates, opt_state, eqx.filter(self, self.filter_spec())
+                    updates, opt_state, eqx.filter(dyn, dyn.filter_spec())
                 )
 
                 # Update variational distribution
-                self: Self = eqx.apply_updates(self, updates)
+                dyn = eqx.apply_updates(dyn, updates)
 
-                return self, opt_state, i, key
+                return dyn, opt_state, i, key
 
             # Run optimization loop
-            self = lax.while_loop(
+            dyn = lax.while_loop(
                 cond_fun=condition,
                 body_fun=body,
-                init_val=(self, opt_state, jnp.array(0, jnp.uint32), key),
+                init_val=(dyn, opt_state, jnp.array(0, jnp.uint32), key),
             )[0]
 
-            return self
+            # Return optimized variational
+            return eqx.combine(dyn, static)
 
         cls.fit = eqx.filter_jit(fit)

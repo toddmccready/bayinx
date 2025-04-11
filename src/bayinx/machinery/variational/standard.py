@@ -20,8 +20,8 @@ class Standard(Variational):
     """
 
     dim: int = eqx.field(static=True)
-    _unflatten: Callable[[Float[Array, "..."]], Model] = eqx.field(static=True)
-    _constraints: Model = eqx.field(static=True)
+    _unflatten: Callable[[Float[Array, "..."]], Model]
+    _constraints: Model
 
     def __init__(self, model: Model):
         """
@@ -31,13 +31,13 @@ class Standard(Variational):
         - `model`: A probabilistic `Model` object.
         """
         # Partition model
-        _, self._constraints = eqx.partition(model, eqx.is_array)
+        params, self._constraints = eqx.partition(model, model.filter_spec())
 
         # Flatten params component
-        _, self._unflatten = ravel_pytree(_)
+        params, self._unflatten = ravel_pytree(params)
 
         # Store dimension of parameter space
-        self.dim = jnp.size(_)
+        self.dim = jnp.size(params)
 
     @eqx.filter_jit
     def sample(self, n: int, key: Key = jr.PRNGKey(0)) -> Array:

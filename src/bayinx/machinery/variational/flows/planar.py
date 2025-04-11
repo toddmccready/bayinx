@@ -20,9 +20,7 @@ class Planar(Flow):
     """
 
     params: Dict[str, Float[Array, "..."]]
-    constraints: Dict[str, Callable[[Float[Array, "..."]], Float[Array, "..."]]] = (
-        eqx.field(static=True)
-    )
+    constraints: Dict[str, Callable[[Array], Array]]
 
     def __init__(self, dim: int, key=jr.PRNGKey(0)):
         """

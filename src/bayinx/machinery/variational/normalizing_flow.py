@@ -102,12 +102,14 @@ class NormalizingFlow(Variational):
         return posterior_evals, variational_evals
 
     def filter_spec(self):
-        # Only optimize the parameters of the flows
+        # Generate empty specification
         filter_spec = jtu.tree_map(lambda _: False, self)
+
+        # Specify variational parameters based on each flow's filter spec.
         filter_spec = eqx.tree_at(
-            lambda nf: nf.flows,
+            lambda vari: vari.flows,
             filter_spec,
-            replace=True,
+            replace=[flow.filter_spec() for flow in self.flows]
         )
 
         return filter_spec

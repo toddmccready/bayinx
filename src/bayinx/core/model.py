@@ -2,6 +2,7 @@ from abc import abstractmethod
 from typing import Any, Callable, Dict
 
 import equinox as eqx
+import jax.tree_util as jtu
 from jaxtyping import Array, Scalar
 
 from bayinx.core.utils import __MyMeta
@@ -22,6 +23,24 @@ class Model(eqx.Module, metaclass=__MyMeta):
     @abstractmethod
     def eval(self, data: Any) -> Scalar:
         pass
+
+    # Default filter specification
+    def filter_spec(self):
+        """
+        Generates a filter specification to subset relevant parameters for the model.
+        """
+        # Generate empty specification
+        filter_spec = jtu.tree_map(lambda _: False, self)
+
+        # Specify JAX Array parameters
+        filter_spec = eqx.tree_at(
+            lambda model: model.params,
+            filter_spec,
+            replace=jtu.tree_map(eqx.is_array, self.params),
+        )
+
+        return filter_spec
+
 
     def __init_subclass__(cls):
         # Add constrain method

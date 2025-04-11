@@ -31,7 +31,7 @@ class MeanField(Variational):
         - `model`: A probabilistic `Model` object.
         """
         # Partition model
-        params, self._constraints = eqx.partition(model, eqx.is_array)
+        params, self._constraints = eqx.partition(model, model.filter_spec())
 
         # Flatten params component
         flat_params, self._unflatten = ravel_pytree(params)
