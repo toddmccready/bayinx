@@ -9,8 +9,6 @@ dependencies = [
     "jax>=0.4.38",
     "jaxtyping>=0.2.36",
     "optax>=0.2.4",
-    "pytest>=8.3.5",
-    "pytest-benchmark>=5.1.0",
 ]
 
 [build-system]
@@ -19,3 +17,9 @@ build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
 addopts = "-q --benchmark-min-rounds=30 --benchmark-columns=rounds,mean,median,stddev --benchmark-group-by=func"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+    "pytest-benchmark>=5.1.0",
+]
