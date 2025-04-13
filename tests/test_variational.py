@@ -7,10 +7,8 @@ from jaxtyping import Array
 
 from bayinx import Model
 from bayinx.dists import normal
-from bayinx.machinery.variational import MeanField, NormalizingFlow, Standard
-from bayinx.machinery.variational.flows.affine import Affine
-from bayinx.machinery.variational.flows.planar import Planar
-from bayinx.machinery.variational.flows.radial import Radial
+from bayinx.mhx.vi import MeanField, NormalizingFlow, Standard
+from bayinx.mhx.vi.flows import Affine, Planar, Radial
 
 
 # Tests ----
