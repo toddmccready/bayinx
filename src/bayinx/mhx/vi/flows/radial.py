@@ -86,7 +86,8 @@ class Radial(Flow):
         # Compute density adjustment
         ladj = jnp.log(
             jnp.abs(
-                (1.0 + alpha * beta / (alpha + r) ** 2.0) * (1.0 + x) ** (center.size - 1.0)
+                (1.0 + alpha * beta / (alpha + r) ** 2.0)
+                * (1.0 + x) ** (center.size - 1.0)
             )
         )
 

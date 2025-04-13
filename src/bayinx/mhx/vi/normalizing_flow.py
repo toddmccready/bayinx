@@ -109,7 +109,7 @@ class NormalizingFlow(Variational):
         filter_spec = eqx.tree_at(
             lambda vari: vari.flows,
             filter_spec,
-            replace=[flow.filter_spec() for flow in self.flows]
+            replace=[flow.filter_spec() for flow in self.flows],
         )
 
         return filter_spec

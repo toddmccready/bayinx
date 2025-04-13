@@ -52,7 +52,6 @@ class Flow(eqx.Module, metaclass=__MyMeta):
             replace=jtu.tree_map(eqx.is_array, self.params),
         )
 
-
         return filter_spec
 
     @eqx.filter_jit
@@ -67,7 +66,6 @@ class Flow(eqx.Module, metaclass=__MyMeta):
 
         for par, map in self.constraints.items():
             t_params[par] = map(t_params[par])
-
 
         return t_params
 
