@@ -23,8 +23,8 @@ class NormalizingFlow(Variational):
 
     flows: list[Flow]
     base: Variational
-    _unflatten: Callable[[Float[Array, "..."]], Model] = eqx.field(static=True)
-    _constraints: Model = eqx.field(static=True)
+    _unflatten: Callable[[Float[Array, "..."]], Model]
+    _constraints: Model
 
     def __init__(self, base: Variational, flows: list[Flow], model: Model):
         """
@@ -73,7 +73,7 @@ class NormalizingFlow(Variational):
         return variational_evals
 
     @eqx.filter_jit
-    def _eval(self, draws: Array, data=None) -> Tuple[Scalar, Array]:
+    def __eval(self, draws: Array, data=None) -> Tuple[Array, Array]:
         """
         Evaluate the posterior and variational densities at the transformed
         `draws` to avoid extra compute when requiring variational draws for
@@ -84,7 +84,7 @@ class NormalizingFlow(Variational):
         - `data`: Any data required to evaluate the posterior density.
 
         # Returns
-        The posterior and variational densities.
+        The posterior and variational densities as JAX Arrays.
         """
         # Evaluate base density
         variational_evals: Array = self.base.eval(draws)
@@ -116,18 +116,16 @@ class NormalizingFlow(Variational):
 
     @eqx.filter_jit
     def elbo(self, n: int, key: Key, data: Any = None) -> Scalar:
-        # Partition
         dyn, static = eqx.partition(self, self.filter_spec())
 
         @eqx.filter_jit
         def elbo(dyn: Self, n: int, key: Key, data: Any = None):
-            # Combine
             self = eqx.combine(dyn, static)
 
             # Sample draws from variational distribution
             draws: Array = self.base.sample(n, key)
 
-            posterior_evals, variational_evals = self._eval(draws, data)
+            posterior_evals, variational_evals = self.__eval(draws, data)
             # Evaluate ELBO
             return jnp.mean(posterior_evals - variational_evals)
 
@@ -135,19 +133,17 @@ class NormalizingFlow(Variational):
 
     @eqx.filter_jit
     def elbo_grad(self, n: int, key: Key, data: Any = None) -> Self:
-        # Partition
         dyn, static = eqx.partition(self, self.filter_spec())
 
         @eqx.filter_grad
         @eqx.filter_jit
         def elbo_grad(dyn: Self, n: int, key: Key, data: Any = None):
-            # Combine
             self = eqx.combine(dyn, static)
 
             # Sample draws from variational distribution
             draws: Array = self.base.sample(n, key)
 
-            posterior_evals, variational_evals = self._eval(draws, data)
+            posterior_evals, variational_evals = self.__eval(draws, data)
             # Evaluate ELBO
             return jnp.mean(posterior_evals - variational_evals)
 
