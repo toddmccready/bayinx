@@ -3,6 +3,7 @@ from typing import Callable, Dict, Tuple
 
 import equinox as eqx
 import jax
+import jax.nn as jnn
 import jax.numpy as jnp
 import jax.random as jr
 from jaxtyping import Array, Float, Scalar
@@ -36,10 +37,23 @@ class Planar(Flow):
         }
         self.constraints = {}
 
+    def transform_pars(self):
+        params = self.params
+
+        u = params['u']
+        w = params['w']
+        b = params['b']
+
+        m = jnn.softplus(w.dot(u)) - 1.0
+
+        u = u + (m - w.dot(u)) * w / (w**2).sum()
+
+        return {'u': u, 'w': w, 'b': b}
+
     @eqx.filter_jit
     @partial(jax.vmap, in_axes=(None, 0))
     def forward(self, draws: Array) -> Array:
-        params = self.constrain_pars()
+        params = self.transform_pars()
 
         # Extract parameters
         w: Array = params["w"]
@@ -54,7 +68,7 @@ class Planar(Flow):
     @eqx.filter_jit
     @partial(jax.vmap, in_axes=(None, 0))
     def adjust_density(self, draws: Array) -> Tuple[Scalar, Array]:
-        params = self.constrain_pars()
+        params = self.transform_pars()
 
         # Extract parameters
         w: Array = params["w"]
