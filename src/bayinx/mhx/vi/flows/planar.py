@@ -30,7 +30,7 @@ class Planar(Flow):
         - `dim`: The dimension of the parameter space.
         """
         self.params = {
-            "u": jnp.ones(dim),
+            "u": jnp.zeros(dim),
             "w": jnp.ones(dim),
             "b": jnp.zeros(1),
         }
