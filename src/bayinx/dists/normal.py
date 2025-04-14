@@ -1,7 +1,7 @@
 import jax.lax as _lax
 from jaxtyping import Array, ArrayLike, Float, Real
 
-_PI = 3.141592653589793
+__PI = 3.141592653589793
 
 
 def prob(
@@ -20,7 +20,7 @@ def prob(
     """
 
     return _lax.exp(-0.5 * _lax.square((x - mu) / sigma)) / ( # pyright: ignore
-        sigma * _lax.sqrt(2.0 * _PI)
+        sigma * _lax.sqrt(2.0 * __PI)
     )
 
 
@@ -39,7 +39,7 @@ def logprob(
     The log of the PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `sigma`.
     """
 
-    return -_lax.log(sigma * _lax.sqrt(2.0 * _PI)) - 0.5 * _lax.square((x - mu) / sigma) # pyright: ignore
+    return -_lax.log(sigma * _lax.sqrt(2.0 * __PI)) - 0.5 * _lax.square((x - mu) / sigma) # pyright: ignore
 
 
 def uprob(
