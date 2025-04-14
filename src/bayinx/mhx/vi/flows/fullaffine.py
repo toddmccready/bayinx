@@ -9,7 +9,7 @@ from jaxtyping import Array, Float, Scalar
 from bayinx.core import Flow
 
 
-class Affine(Flow):
+class FullAffine(Flow):
     """
     An affine flow.
 

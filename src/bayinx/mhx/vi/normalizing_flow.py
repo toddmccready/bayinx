@@ -115,7 +115,7 @@ class NormalizingFlow(Variational):
         return filter_spec
 
     @eqx.filter_jit
-    def elbo(self, n: int, key: Key, data: Any = None) -> Scalar:
+    def elbo(self, n: int, key: Key = jr.PRNGKey(0), data: Any = None) -> Scalar:
         dyn, static = eqx.partition(self, self.filter_spec())
 
         @eqx.filter_jit
