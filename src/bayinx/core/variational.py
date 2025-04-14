@@ -115,7 +115,7 @@ class Variational(eqx.Module):
 
             # Initialize optimizer
             optim: GradientTransformation = opx.chain(
-                opx.scale(-1.0), opx.nadamw(schedule,weight_decay=weight_decay)
+                opx.scale(-1.0), opx.nadamw(schedule, weight_decay=weight_decay)
             )
             opt_state: OptState = optim.init(dyn)
 
