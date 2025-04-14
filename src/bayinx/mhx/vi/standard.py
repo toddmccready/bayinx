@@ -52,7 +52,7 @@ class Standard(Variational):
             x=draws,
             mu=jnp.array(0.0),
             sigma=jnp.array(1.0),
-        ).sum(axis=1)
+        ).sum(axis=1, keepdims=True)
 
     @eqx.filter_jit
     def filter_spec(self):
