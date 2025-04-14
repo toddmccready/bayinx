@@ -1,6 +1,6 @@
 [project]
 name = "bayinx"
-version = "0.2.11"
+version = "0.2.12"
 description = "Bayesian Inference with JAX"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -19,4 +19,4 @@ build-backend = "hatchling.build"
 addopts = "-q --benchmark-min-rounds=30 --benchmark-columns=rounds,mean,median,stddev --benchmark-group-by=func"
 
 [dependency-groups]
-dev = ["pytest>=8.3.5", "pytest-benchmark>=5.1.0"]
+dev = ["matplotlib>=3.10.1", "pytest>=8.3.5", "pytest-benchmark>=5.1.0"]
