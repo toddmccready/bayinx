@@ -89,6 +89,7 @@ class Variational(eqx.Module):
             max_iters: int,
             data: Any = None,
             learning_rate: float = 1,
+            weight_decay: float = 1e-4,
             tolerance: float = 1e-4,
             var_draws: int = 1,
             key: Key = jr.PRNGKey(0),
@@ -114,7 +115,7 @@ class Variational(eqx.Module):
 
             # Initialize optimizer
             optim: GradientTransformation = opx.chain(
-                opx.scale(-1.0), opx.nadam(schedule)
+                opx.scale(-1.0), opx.nadamw(schedule,weight_decay=weight_decay)
             )
             opt_state: OptState = optim.init(dyn)
 
