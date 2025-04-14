@@ -1,8 +1,6 @@
-from functools import partial
 from typing import Any, Callable, Self, Tuple
 
 import equinox as eqx
-import jax
 import jax.flatten_util as jfu
 import jax.numpy as jnp
 import jax.random as jr
@@ -61,7 +59,6 @@ class NormalizingFlow(Variational):
         return draws
 
     @eqx.filter_jit
-    @partial(jax.vmap, in_axes=(None, 0))
     def eval(self, draws: Array) -> Array:
         # Evaluate base density
         variational_evals: Array = self.base.eval(draws)
