@@ -1,10 +1,12 @@
 from abc import abstractmethod
-from typing import Any, Callable, Dict
+from typing import Any, Dict, Tuple
 
 import equinox as eqx
+import jax.numpy as jnp
 import jax.tree_util as jtu
 from jaxtyping import Array, Scalar
 
+from bayinx.core.constraints import Constraint
 from bayinx.core.utils import __MyMeta
 
 
@@ -18,7 +20,7 @@ class Model(eqx.Module, metaclass=__MyMeta):
     """
 
     params: Dict[str, Array]
-    constraints: Dict[str, Callable[[Array], Array]]
+    constraints: Dict[str, Constraint]
 
     @abstractmethod
     def eval(self, data: Any) -> Scalar:
@@ -41,34 +43,33 @@ class Model(eqx.Module, metaclass=__MyMeta):
 
         return filter_spec
 
-    def __init_subclass__(cls):
-        # Add constrain method
-        def constrain_pars(self: Model) -> Dict[str, Array]:
-            """
-            Constrain `params` to the appropriate domain.
+    # Add constrain method
+    @eqx.filter_jit
+    def constrain_pars(self) -> Tuple[Dict[str, Array], Scalar]:
+        """
+        Constrain `params` to the appropriate domain.
 
-            # Returns
-            A dictionary of transformed JAX Arrays representing the constrained parameters.
-            """
-            t_params = self.params
+        # Returns
+        A dictionary of transformed JAX Arrays representing the constrained parameters and the adjustment to the posterior density.
+        """
+        t_params: Dict[str, Array] = self.params
+        target: Scalar = jnp.array(0.0)
 
-            for par, map in self.constraints.items():
-                t_params[par] = map(t_params[par])
+        for par, map in self.constraints.items():
+            # Apply transformation
+            t_params[par], ladj = map.constrain(t_params[par])
 
-            return t_params
+            # Adjust posterior density
+            target -= ladj
 
-        cls.constrain_pars = eqx.filter_jit(constrain_pars)
+        return t_params, target
 
-        # Add transform_pars method if not present
-        if not callable(getattr(cls, "transform_pars", None)):
 
-            def transform_pars(self: Model) -> Dict[str, Array]:
-                """
-                Apply a custom transformation to `params` if needed.
+    def transform_pars(self) -> Tuple[Dict[str, Array], Scalar]:
+        """
+        Apply a custom transformation to `params` if needed.
 
-                # Returns
-                A dictionary of transformed JAX Arrays representing the transformed parameters.
-                """
-                return self.constrain_pars()
-
-            cls.transform_pars = eqx.filter_jit(transform_pars)
+        # Returns
+        A dictionary of transformed JAX Arrays representing the transformed parameters.
+        """
+        return self.constrain_pars()

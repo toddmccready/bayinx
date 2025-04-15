@@ -144,6 +144,7 @@ class NormalizingFlow(Variational):
             draws: Array = self.base.sample(n, key)
 
             posterior_evals, variational_evals = self.__eval(draws, data)
+
             # Evaluate ELBO
             return jnp.mean(posterior_evals - variational_evals)
 

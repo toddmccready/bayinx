@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from functools import partial
 from typing import Any, Callable, Self, Tuple
 
 import equinox as eqx
@@ -60,108 +61,102 @@ class Variational(eqx.Module):
         """
         pass
 
-    def __init_subclass__(cls):
+    @eqx.filter_jit
+    @partial(jax.vmap, in_axes=(None, 0, None))
+    def eval_model(self, draws: Array, data: Any = None) -> Array:
         """
-        Construct methods that are shared across all VI methods.
+        Reconstruct models from variational draws and evaluate their posterior density.
+
+        # Parameters
+        - `draws`: A set of variational draws.
+        - `data`: Data used to evaluate the posterior(if needed).
         """
+        # Unflatten variational draw
+        model: Model = self._unflatten(draws)
 
-        def eval_model(self, draws: Array, data: Any = None) -> Array:
-            """
-            Reconstruct models from variational draws and evaluate their posterior density.
+        # Combine with constraints
+        model: Model = eqx.combine(model, self._constraints)
 
-            # Parameters
-            - `draws`: A set of variational draws.
-            - `data`: Data used to evaluate the posterior(if needed).
-            """
-            # Unflatten variational draw
-            model: Model = self._unflatten(draws)
+        # Evaluate posterior density
+        return model.eval(data)
 
-            # Combine with constraints
-            model: Model = eqx.combine(model, self._constraints)
+    @eqx.filter_jit
+    def fit(
+        self,
+        max_iters: int,
+        data: Any = None,
+        learning_rate: float = 1,
+        weight_decay: float = 1e-4,
+        tolerance: float = 1e-4,
+        var_draws: int = 1,
+        key: Key = jr.PRNGKey(0),
+    ) -> Self:
+        """
+        Optimize the variational distribution.
 
-            # Evaluate posterior density
-            return model.eval(data)
+        # Parameters
+        - `max_iters`: Maximum number of iterations for the optimization loop.
+        - `data`: Data to evaluate the posterior density with(if available).
+        - `learning_rate`: Initial learning rate for optimization.
+        - `tolerance`: Relative tolerance of ELBO decrease for stopping early.
+        - `var_draws`: Number of variational draws to draw each iteration.
+        - `key`: A PRNG key.
+        """
+        # Partition variational
+        dyn, static = eqx.partition(self, self.filter_spec())
 
-        cls.eval_model = jax.vmap(eqx.filter_jit(eval_model), (None, 0, None))
+        # Construct scheduler
+        schedule: Schedule = opx.cosine_decay_schedule(
+            init_value=learning_rate, decay_steps=max_iters
+        )
 
-        def fit(
-            self,
-            max_iters: int,
-            data: Any = None,
-            learning_rate: float = 1,
-            weight_decay: float = 1e-4,
-            tolerance: float = 1e-4,
-            var_draws: int = 1,
-            key: Key = jr.PRNGKey(0),
-        ) -> Self:
-            """
-            Optimize the variational distribution.
+        # Initialize optimizer
+        optim: GradientTransformation = opx.chain(
+            opx.scale(-1.0), opx.nadamw(schedule, weight_decay=weight_decay)
+        )
+        opt_state: OptState = optim.init(dyn)
 
-            # Parameters
-            - `max_iters`: Maximum number of iterations for the optimization loop.
-            - `data`: Data to evaluate the posterior density with(if available).
-            - `learning_rate`: Initial learning rate for optimization.
-            - `tolerance`: Relative tolerance of ELBO decrease for stopping early.
-            - `var_draws`: Number of variational draws to draw each iteration.
-            - `key`: A PRNG key.
-            """
-            # Partition variational
-            dyn, static = eqx.partition(self, self.filter_spec())
+        # Optimization loop helper functions
+        @eqx.filter_jit
+        def condition(state: Tuple[Self, OptState, Scalar, Key]):
+            # Unpack iteration state
+            dyn, opt_state, i, key = state
 
-            # Construct scheduler
-            schedule: Schedule = opx.cosine_decay_schedule(
-                init_value=learning_rate, decay_steps=max_iters
+            return i < max_iters
+
+        @eqx.filter_jit
+        def body(state: Tuple[Self, OptState, Scalar, Key]):
+            # Unpack iteration state
+            dyn, opt_state, i, key = state
+
+            # Update iteration
+            i = i + 1
+
+            # Update PRNG key
+            key, _ = jr.split(key)
+
+            # Combine variational
+            vari = eqx.combine(dyn, static)
+
+            # Compute gradient of the ELBO
+            updates: PyTree = vari.elbo_grad(var_draws, key, data)
+
+            # Compute updates
+            updates, opt_state = optim.update(
+                updates, opt_state, eqx.filter(dyn, dyn.filter_spec())
             )
 
-            # Initialize optimizer
-            optim: GradientTransformation = opx.chain(
-                opx.scale(-1.0), opx.nadamw(schedule, weight_decay=weight_decay)
-            )
-            opt_state: OptState = optim.init(dyn)
+            # Update variational distribution
+            dyn = eqx.apply_updates(dyn, updates)
 
-            # Optimization loop helper functions
-            @eqx.filter_jit
-            def condition(state: Tuple[Self, OptState, Scalar, Key]):
-                # Unpack iteration state
-                dyn, opt_state, i, key = state
+            return dyn, opt_state, i, key
 
-                return i < max_iters
+        # Run optimization loop
+        dyn = lax.while_loop(
+            cond_fun=condition,
+            body_fun=body,
+            init_val=(dyn, opt_state, jnp.array(0, jnp.uint32), key),
+        )[0]
 
-            @eqx.filter_jit
-            def body(state: Tuple[Self, OptState, Scalar, Key]):
-                # Unpack iteration state
-                dyn, opt_state, i, key = state
-
-                # Update iteration
-                i = i + 1
-
-                # Update PRNG key
-                key, _ = jr.split(key)
-
-                # Combine variational
-                vari = eqx.combine(dyn, static)
-
-                # Compute gradient of the ELBO
-                updates: PyTree = vari.elbo_grad(var_draws, key, data)
-
-                # Compute updates
-                updates, opt_state = optim.update(
-                    updates, opt_state, eqx.filter(dyn, dyn.filter_spec())
-                )
-
-                # Update variational distribution
-                dyn = eqx.apply_updates(dyn, updates)
-
-                return dyn, opt_state, i, key
-
-            # Run optimization loop
-            dyn = lax.while_loop(
-                cond_fun=condition,
-                body_fun=body,
-                init_val=(dyn, opt_state, jnp.array(0, jnp.uint32), key),
-            )[0]
-
-            # Return optimized variational
-            return eqx.combine(dyn, static)
-
-        cls.fit = eqx.filter_jit(fit)
+        # Return optimized variational
+        return eqx.combine(dyn, static)
