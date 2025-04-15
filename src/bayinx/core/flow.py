@@ -5,10 +5,8 @@ import equinox as eqx
 import jax.tree_util as jtu
 from jaxtyping import Array, Float
 
-from bayinx.core.utils import __MyMeta
 
-
-class Flow(eqx.Module, metaclass=__MyMeta):
+class Flow(eqx.Module):
     """
     A superclass used to define continuously parameterized diffeomorphisms for normalizing flows.
 

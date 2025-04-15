@@ -7,10 +7,9 @@ import jax.tree_util as jtu
 from jaxtyping import Array, Scalar
 
 from bayinx.core.constraints import Constraint
-from bayinx.core.utils import __MyMeta
 
 
-class Model(eqx.Module, metaclass=__MyMeta):
+class Model(eqx.Module):
     """
     A superclass used to define probabilistic models.
 
