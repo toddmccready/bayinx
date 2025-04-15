@@ -43,7 +43,7 @@ class FullAffine(Flow):
         diag: Array = jnp.exp(jnp.diag(params['scale']))
 
         # Fill diagonal
-        params['scale'] = jnp.fill_diagonal(params['scale'], diag)
+        params['scale'] = jnp.fill_diagonal(params['scale'], diag, inplace=False)
 
 
         return params
@@ -52,7 +52,7 @@ class FullAffine(Flow):
 
     @eqx.filter_jit
     def forward(self, draws: Array) -> Array:
-        params = self.constrain_pars()
+        params = self.transform_pars()
 
         # Extract parameters
         shift: Array = params["shift"]
@@ -66,7 +66,7 @@ class FullAffine(Flow):
     @eqx.filter_jit
     @partial(jax.vmap, in_axes=(None, 0))
     def adjust_density(self, draws: Array) -> Tuple[Scalar, Array]:
-        params = self.constrain_pars()
+        params = self.transform_pars()
 
         # Extract parameters
         shift: Array = params["shift"]

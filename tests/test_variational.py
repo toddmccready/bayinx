@@ -88,7 +88,7 @@ def test_affine(benchmark, var_draws):
     benchmark(benchmark_fit)
     vari = vari.fit(20000,var_draws=var_draws)
 
-    params = vari.flows[0].constrain_pars()
+    params = vari.flows[0].transform_pars()
     assert (abs(10.0 - vari.flows[0].params["shift"]) < 0.1).all() and (
         abs(jnp.eye(2) - params["scale"]) < 0.1
     ).all()
