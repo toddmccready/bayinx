@@ -16,7 +16,7 @@ from bayinx.core import Model
 
 class Variational(eqx.Module):
     """
-    A superclass used to define variational methods.
+    An abstract base class used to define variational methods.
 
     # Attributes
     - `_unflatten`: A static function to transform draws from the variational distribution back to a `Model`.

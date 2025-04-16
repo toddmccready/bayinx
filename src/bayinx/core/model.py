@@ -11,7 +11,7 @@ from bayinx.core.constraints import Constraint
 
 class Model(eqx.Module):
     """
-    A superclass used to define probabilistic models.
+    An abstract base class used to define probabilistic models.
 
     # Attributes
     - `params`: A dictionary of JAX Arrays representing parameters of the model.
@@ -24,6 +24,7 @@ class Model(eqx.Module):
     @abstractmethod
     def eval(self, data: Any) -> Scalar:
         pass
+
 
     # Default filter specification
     def filter_spec(self):
@@ -63,7 +64,7 @@ class Model(eqx.Module):
 
         return t_params, target
 
-
+    # Add default transform method
     def transform_pars(self) -> Tuple[Dict[str, Array], Scalar]:
         """
         Apply a custom transformation to `params` if needed.

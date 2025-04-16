@@ -8,13 +8,14 @@ from jaxtyping import Array, Float
 
 class Flow(eqx.Module):
     """
-    A superclass used to define continuously parameterized diffeomorphisms for normalizing flows.
+    An abstract base class for implementing flows of a normalizing flow.
+
+    Subclasses must implement the abstract methods `forward` and `adjust_density`.
 
     # Attributes
     - `pars`: A dictionary of JAX Arrays representing parameters of the diffeomorphism.
     - `constraints`: A dictionary of functions that constrain their corresponding parameter.
     """
-
     params: Dict[str, Float[Array, "..."]]
     constraints: Dict[str, Callable[[Float[Array, "..."]], Float[Array, "..."]]]
 
