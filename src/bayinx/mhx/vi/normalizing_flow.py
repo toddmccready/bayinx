@@ -18,8 +18,6 @@ class NormalizingFlow(Variational):
     # Attributes
     - `base`: A base variational distribution.
     - `flows`: An ordered collection of continuously parameterized diffeomorphisms.
-    - `_unflatten`: A static function to transform draws from the variational distribution back to a `Model`.
-    - `_constraints`: A static partitioned `Model` with the constraints of the `Model` used to initialize the `Variational` object.
     """
 
     flows: list[Flow]

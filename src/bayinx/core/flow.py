@@ -8,9 +8,7 @@ from jaxtyping import Array, Float
 
 class Flow(eqx.Module):
     """
-    An abstract base class for implementing flows of a normalizing flow.
-
-    Subclasses must implement the abstract methods `forward` and `adjust_density`.
+    An abstract base class for a flow(of a normalizing flow).
 
     # Attributes
     - `pars`: A dictionary of JAX Arrays representing parameters of the diffeomorphism.

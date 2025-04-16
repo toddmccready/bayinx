@@ -135,7 +135,7 @@ class Variational(eqx.Module):
             # Update PRNG key
             key, _ = jr.split(key)
 
-            # Combine variational
+            # Reconstruct variational
             vari = eqx.combine(dyn, static)
 
             # Compute gradient of the ELBO

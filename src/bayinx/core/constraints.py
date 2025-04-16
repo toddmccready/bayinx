@@ -9,14 +9,12 @@ from jaxtyping import Array, ArrayLike, Scalar, ScalarLike
 class Constraint(eqx.Module):
     """
     Abstract base class for defining parameter constraints.
-
-    Subclasses should implement the `constrain` method to apply the transformation and compute the ladj adjustment.
     """
 
     @abstractmethod
     def constrain(self, x: ArrayLike) -> Tuple[Array, Scalar]:
         """
-        Applies the constraining transformation to an unconstrained input and computes the log absolute determinant of the Jacobian (ladj) of this transformation.
+        Applies the constraining transformation to an unconstrained input and computes the log-absolute-jacobian of the transformation.
 
         # Parameters
         - `x`: The unconstrained JAX Array-like input.
@@ -24,7 +22,7 @@ class Constraint(eqx.Module):
         # Returns
         A tuple containing:
             - The constrained JAX Array.
-            - A scalar JAX Array representing the ladj of the transformation.
+            - A scalar JAX Array representing the laj of the transformation.
         """
         pass
 
@@ -41,7 +39,7 @@ class LowerBound(Constraint):
 
     def constrain(self, x: ArrayLike) -> Tuple[Array, Scalar]:
         """
-        Applies the lower bound constraint and computes the ladj.
+        Applies the lower bound constraint and computes the laj.
 
         # Parameters
         - `x`: The unconstrained JAX Array-like input.
@@ -49,10 +47,10 @@ class LowerBound(Constraint):
         # Parameters
         A tuple containing:
             - The constrained JAX Array (x > self.lb).
-            - A scalar JAX Array representing the ladj of the transformation.
+            - A scalar JAX Array representing the laj of the transformation.
         """
         # Compute transformation adjustment
-        ladj = jnp.sum(x)
+        ladj: Scalar = jnp.sum(x)
 
         # Compute transformation
         x = jnp.exp(x) + self.lb
