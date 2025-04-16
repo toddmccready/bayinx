@@ -20,8 +20,8 @@ class MeanField(Variational):
     """
 
     var_params: Dict[str, Float[Array, "..."]]
-    _unflatten: Callable[[Float[Array, "..."]], Model] = eqx.field(static=True)
-    _constraints: Model = eqx.field(static=True)
+    _unflatten: Callable[[Float[Array, "..."]], Model]
+    _constraints: Model
 
     def __init__(self, model: Model):
         """
@@ -63,25 +63,24 @@ class MeanField(Variational):
 
     @eqx.filter_jit
     def filter_spec(self):
+        # Generate empty specification
         filter_spec = jtu.tree_map(lambda _: False, self)
+
+        # Specify variational parameters
         filter_spec = eqx.tree_at(
             lambda mf: mf.var_params,
             filter_spec,
             replace=True,
         )
+
         return filter_spec
 
     @eqx.filter_jit
     def elbo(self, n: int, key: Key, data: Any = None) -> Scalar:
-        """
-        Estimate the ELBO and its gradient(w.r.t the variational parameters).
-        """
-        # Partition variational
         dyn, static = eqx.partition(self, self.filter_spec())
 
         @eqx.filter_jit
         def elbo(dyn: Self, n: int, key: Key, data: Any = None) -> Scalar:
-            # Combine
             vari = eqx.combine(dyn, static)
 
             # Sample draws from variational distribution
@@ -100,7 +99,6 @@ class MeanField(Variational):
 
     @eqx.filter_jit
     def elbo_grad(self, n: int, key: Key, data: Any = None) -> Self:
-        # Partition
         dyn, static = eqx.partition(self, self.filter_spec())
 
         @eqx.filter_grad

@@ -16,6 +16,7 @@ class Flow(eqx.Module):
     - `pars`: A dictionary of JAX Arrays representing parameters of the diffeomorphism.
     - `constraints`: A dictionary of functions that constrain their corresponding parameter.
     """
+
     params: Dict[str, Float[Array, "..."]]
     constraints: Dict[str, Callable[[Float[Array, "..."]], Float[Array, "..."]]]
 
@@ -32,7 +33,7 @@ class Flow(eqx.Module):
         Computes the log-absolute-Jacobian at `draws` and applies the forward transformation.
 
         # Returns
-        A tuple of JAX Arrays containing the log-absolute-Jacobians and transformed draws.
+        A tuple of JAX Arrays containing the transformed draws and log-absolute-Jacobians.
         """
         pass
 

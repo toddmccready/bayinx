@@ -1,29 +1,26 @@
 from functools import partial
-from typing import Callable, Dict, Tuple
+from typing import Tuple
 
 import equinox as eqx
 import jax
 import jax.numpy as jnp
-from jaxtyping import Array, Float, Scalar
+from jaxtyping import Array, Scalar
 
 from bayinx.core import Flow
 
 
 class FullAffine(Flow):
     """
-    An affine flow.
+    A full affine flow.
 
     # Attributes
     - `params`: A dictionary containing the JAX Arrays representing the scale and shift parameters.
     - `constraints`: A dictionary of constraining transformations.
     """
 
-    params: Dict[str, Float[Array, "..."]]
-    constraints: Dict[str, Callable[[Float[Array, "..."]], Float[Array, "..."]]]
-
     def __init__(self, dim: int):
         """
-        Initializes an affine flow.
+        Initializes a full affine flow.
 
         # Parameters
         - `dim`: The dimension of the parameter space.
@@ -37,19 +34,15 @@ class FullAffine(Flow):
 
     @eqx.filter_jit
     def transform_pars(self):
-        # Get constrained parameters
         params = self.constrain_pars()
 
         # Extract diagonal and apply exponential
-        diag: Array = jnp.exp(jnp.diag(params['scale']))
+        diag: Array = jnp.exp(jnp.diag(params["scale"]))
 
         # Fill diagonal
-        params['scale'] = jnp.fill_diagonal(params['scale'], diag, inplace=False)
-
+        params["scale"] = jnp.fill_diagonal(params["scale"], diag, inplace=False)
 
         return params
-
-
 
     @eqx.filter_jit
     def forward(self, draws: Array) -> Array:
@@ -66,7 +59,7 @@ class FullAffine(Flow):
 
     @eqx.filter_jit
     @partial(jax.vmap, in_axes=(None, 0))
-    def adjust_density(self, draws: Array) -> Tuple[Scalar, Array]:
+    def adjust_density(self, draws: Array) -> Tuple[Array, Scalar]:
         params = self.transform_pars()
 
         # Extract parameters
@@ -79,4 +72,4 @@ class FullAffine(Flow):
         # Compute laj
         laj: Scalar = jnp.log(jnp.diag(scale)).sum()
 
-        return laj, draws
+        return draws, laj

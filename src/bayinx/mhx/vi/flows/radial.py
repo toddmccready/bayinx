@@ -66,7 +66,7 @@ class Radial(Flow):
 
     @partial(jax.vmap, in_axes=(None, 0))
     @eqx.filter_jit
-    def adjust_density(self, draws: Array) -> Tuple[Scalar, Array]:
+    def adjust_density(self, draws: Array) -> Tuple[Array, Scalar]:
         params = self.transform_pars()
 
         # Extract parameters
@@ -91,4 +91,4 @@ class Radial(Flow):
             )
         )
 
-        return laj, draws
+        return draws, laj

@@ -18,7 +18,7 @@ def prob(
     The PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `lb`, and `ub`.
     """
 
-    return 1.0 / (ub - lb) # pyright: ignore
+    return 1.0 / (ub - lb)  # pyright: ignore
 
 
 def logprob(
@@ -36,7 +36,7 @@ def logprob(
     The log of the PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `lb`, and `ub`.
     """
 
-    return _lax.log(1.0) - _lax.log(ub - lb) # pyright: ignore
+    return _lax.log(1.0) - _lax.log(ub - lb)  # pyright: ignore
 
 
 def uprob(
@@ -54,7 +54,7 @@ def uprob(
     The uPDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `lb`, and `ub`.
     """
 
-    return jnp.ones(jnp.broadcast_arrays(x,lb,ub))
+    return jnp.ones(jnp.broadcast_arrays(x, lb, ub))
 
 
 def ulogprob(
@@ -72,4 +72,4 @@ def ulogprob(
     The log uPDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `lb`, and `ub`.
     """
 
-    return jnp.zeros(jnp.broadcast_arrays(x,lb,ub))
+    return jnp.zeros(jnp.broadcast_arrays(x, lb, ub))

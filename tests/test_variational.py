@@ -29,7 +29,9 @@ def test_meanfield(benchmark, var_draws):
             params, target = self.constrain_pars()
 
             # Evaluate mu ~ N(10,1)
-            target += normal.logprob(x=params["mu"], mu=jnp.array(10.0), sigma=jnp.array(1.0)).sum()
+            target += normal.logprob(
+                x=params["mu"], mu=jnp.array(10.0), sigma=jnp.array(1.0)
+            ).sum()
 
             # Evaluate mu ~ N(10,1)
             return target
@@ -45,7 +47,7 @@ def test_meanfield(benchmark, var_draws):
         vari.fit(10000, var_draws=var_draws)
 
     benchmark(benchmark_fit)
-    vari = vari.fit(20000,var_draws=var_draws)
+    vari = vari.fit(20000, var_draws=var_draws)
 
     # Assert parameters are roughly correct
     assert all(abs(10.0 - vari.var_params["mean"]) < 0.1) and all(
@@ -70,7 +72,9 @@ def test_affine(benchmark, var_draws):
             params, target = self.constrain_pars()
 
             # Evaluate mu ~ N(10,1)
-            target += normal.logprob(x=params["mu"], mu=jnp.array(10.0), sigma=jnp.array(1.0)).sum()
+            target += normal.logprob(
+                x=params["mu"], mu=jnp.array(10.0), sigma=jnp.array(1.0)
+            ).sum()
 
             # Evaluate mu ~ N(10,1)
             return target
@@ -86,7 +90,7 @@ def test_affine(benchmark, var_draws):
         vari.fit(10000, var_draws=var_draws)
 
     benchmark(benchmark_fit)
-    vari = vari.fit(20000,var_draws=var_draws)
+    vari = vari.fit(20000, var_draws=var_draws)
 
     params = vari.flows[0].transform_pars()
     assert (abs(10.0 - vari.flows[0].params["shift"]) < 0.1).all() and (
@@ -111,7 +115,9 @@ def test_flows(benchmark, var_draws):
             params, target = self.constrain_pars()
 
             # Evaluate mu ~ N(10,1)
-            target += normal.logprob(x=params["mu"], mu=jnp.array(10.0), sigma=jnp.array(1.0)).sum()
+            target += normal.logprob(
+                x=params["mu"], mu=jnp.array(10.0), sigma=jnp.array(1.0)
+            ).sum()
 
             return target
 
@@ -128,7 +134,7 @@ def test_flows(benchmark, var_draws):
         vari.fit(10000, var_draws=var_draws)
 
     benchmark(benchmark_fit)
-    vari = vari.fit(20000,var_draws=var_draws)
+    vari = vari.fit(20000, var_draws=var_draws)
 
     mean = vari.sample(1000).mean(0)
     var = vari.sample(1000).var(0)

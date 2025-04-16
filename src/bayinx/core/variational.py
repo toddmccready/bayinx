@@ -8,7 +8,7 @@ import jax.lax as lax
 import jax.numpy as jnp
 import jax.random as jr
 import optax as opx
-from jaxtyping import Array, Float, Key, PyTree, Scalar
+from jaxtyping import Array, Key, PyTree, Scalar
 from optax import GradientTransformation, OptState, Schedule
 
 from bayinx.core import Model
@@ -23,8 +23,15 @@ class Variational(eqx.Module):
     - `_constraints`: A static partitioned `Model` with the constraints of the `Model` used to initialize the `Variational` object.
     """
 
-    _unflatten: Callable[[Float[Array, "..."]], Model]
+    _unflatten: Callable[[Array], Model]
     _constraints: Model
+
+    @abstractmethod
+    def filter_spec(self):
+        """
+        Filter specification for dynamic and static components of the `Variational`.
+        """
+        pass
 
     @abstractmethod
     def sample(self, n: int, key: Key) -> Array:
@@ -51,13 +58,6 @@ class Variational(eqx.Module):
     def elbo_grad(self, n: int, key: Key, data: Any = None) -> PyTree:
         """
         Evaluate the gradient of the ELBO.
-        """
-        pass
-
-    @abstractmethod
-    def filter_spec(self):
-        """
-        Filter specification for dynamic and static components of the `Variational`.
         """
         pass
 

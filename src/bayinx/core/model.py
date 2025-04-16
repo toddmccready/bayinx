@@ -25,7 +25,6 @@ class Model(eqx.Module):
     def eval(self, data: Any) -> Scalar:
         pass
 
-
     # Default filter specification
     def filter_spec(self):
         """

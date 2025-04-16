@@ -19,7 +19,7 @@ def prob(
     The PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `sigma`.
     """
 
-    return _lax.exp(-0.5 * _lax.square((x - mu) / sigma)) / ( # pyright: ignore
+    return _lax.exp(-0.5 * _lax.square((x - mu) / sigma)) / (  # pyright: ignore
         sigma * _lax.sqrt(2.0 * __PI)
     )
 
@@ -39,7 +39,9 @@ def logprob(
     The log of the PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `sigma`.
     """
 
-    return -_lax.log(sigma * _lax.sqrt(2.0 * __PI)) - 0.5 * _lax.square((x - mu) / sigma) # pyright: ignore
+    return -_lax.log(sigma * _lax.sqrt(2.0 * __PI)) - 0.5 * _lax.square(
+        (x - mu) / sigma # pyright: ignore
+    )
 
 
 def uprob(
@@ -57,7 +59,7 @@ def uprob(
     The uPDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `sigma`.
     """
 
-    return _lax.exp(-0.5 * _lax.square((x - mu) / sigma)) / sigma # pyright: ignore
+    return _lax.exp(-0.5 * _lax.square((x - mu) / sigma)) / sigma  # pyright: ignore
 
 
 def ulogprob(
@@ -75,4 +77,4 @@ def ulogprob(
     The log uPDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `sigma`.
     """
 
-    return -_lax.log(sigma) - 0.5 * _lax.square((x - mu) / sigma) # pyright: ignore
+    return -_lax.log(sigma) - 0.5 * _lax.square((x - mu) / sigma)  # pyright: ignore

@@ -53,7 +53,7 @@ class Planar(Flow):
 
     @eqx.filter_jit
     @partial(jax.vmap, in_axes=(None, 0))
-    def adjust_density(self, draws: Array) -> Tuple[Scalar, Array]:
+    def adjust_density(self, draws: Array) -> Tuple[Array, Scalar]:
         params = self.transform_pars()
 
         # Extract parameters
@@ -67,8 +67,8 @@ class Planar(Flow):
         # Compute forward transformation
         draws = draws + u * jnp.tanh(x)
 
-        # Compute ladj
+        # Compute laj
         h_prime: Scalar = 1.0 - jnp.square(jnp.tanh(x))
-        ladj: Scalar = jnp.log(jnp.abs(1.0 + h_prime * u.dot(w)))
+        laj: Scalar = jnp.log(jnp.abs(1.0 + h_prime * u.dot(w)))
 
-        return ladj, draws
+        return draws, laj
