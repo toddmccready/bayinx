@@ -14,7 +14,7 @@ class Flow(eqx.Module):
 
     # Attributes
     - `pars`: A dictionary of JAX Arrays representing parameters of the diffeomorphism.
-    - `constraints`: A dictionary of functions that constrain their corresponding parameter.
+    - `constraints`: A dictionary of simple functions that constrain their corresponding parameter.
     """
 
     params: Dict[str, Float[Array, "..."]]

@@ -15,7 +15,7 @@ class Model(eqx.Module):
 
     # Attributes
     - `params`: A dictionary of JAX Arrays representing parameters of the model.
-    - `constraints`: A dictionary of functions that constrain their corresponding parameter.
+    - `constraints`: A dictionary of constraints.
     """
 
     params: Dict[str, Array]
