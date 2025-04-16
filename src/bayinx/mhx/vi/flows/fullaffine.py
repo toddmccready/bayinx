@@ -35,6 +35,7 @@ class FullAffine(Flow):
 
         self.constraints = {"scale": lambda m: jnp.tril(m)}
 
+    @eqx.filter_jit
     def transform_pars(self):
         # Get constrained parameters
         params = self.constrain_pars()
@@ -75,7 +76,7 @@ class FullAffine(Flow):
         # Compute forward transformation
         draws = draws @ scale + shift
 
-        # Compute ladj
-        ladj: Scalar = jnp.log(jnp.diag(scale)).sum()
+        # Compute laj
+        laj: Scalar = jnp.log(jnp.diag(scale)).sum()
 
-        return ladj, draws
+        return laj, draws

@@ -28,10 +28,10 @@ class Flow(eqx.Module):
     @abstractmethod
     def adjust_density(self, draws: Array) -> Tuple[Array, Array]:
         """
-        Computes the log-absolute-determinant of the Jacobian at `draws` and applies the forward transformation.
+        Computes the log-absolute-Jacobian at `draws` and applies the forward transformation.
 
         # Returns
-        A tuple of JAX Arrays containing the log-absolute-determinant of the Jacobians and transformed draws.
+        A tuple of JAX Arrays containing the log-absolute-Jacobians and transformed draws.
         """
         pass
 
