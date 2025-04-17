@@ -33,6 +33,7 @@ class FullAffine(Flow):
         if dim == 1:
             self.constraints = {}
         else:
+
             @eqx.filter_jit
             def constrain_scale(scale: Array):
                 # Extract diagonal and apply exponential
@@ -42,7 +43,6 @@ class FullAffine(Flow):
                 return jnp.fill_diagonal(scale, diag, inplace=False)
 
             self.constraints = {"scale": constrain_scale}
-
 
     @eqx.filter_jit
     def forward(self, draws: Array) -> Array:
