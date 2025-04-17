@@ -13,7 +13,7 @@ class Constraint(eqx.Module):
     @abstractmethod
     def constrain(self, x: ArrayLike) -> Tuple[Array, Scalar]:
         """
-        Applies the constraining transformation to an unconstrained input and computes the log-absolute-jacobian of the transformation.
+        Applies the constraining transformation to an unconstrained input and computes the log-absolute-Jacobian of the transformation.
 
         # Parameters
         - `x`: The unconstrained JAX Array-like input.
@@ -21,6 +21,6 @@ class Constraint(eqx.Module):
         # Returns
         A tuple containing:
             - The constrained JAX Array.
-            - A scalar JAX Array representing the laj of the transformation.
+            - A scalar JAX Array representing the log-absolute-Jacobian of the transformation.
         """
         pass

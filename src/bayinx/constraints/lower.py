@@ -18,7 +18,7 @@ class Lower(Constraint):
 
     def constrain(self, x: ArrayLike) -> Tuple[Array, Scalar]:
         """
-        Applies the lower bound constraint and computes the laj.
+        Applies the lower bound constraint and adjusts the posterior density.
 
         # Parameters
         - `x`: The unconstrained JAX Array-like input.
@@ -26,7 +26,7 @@ class Lower(Constraint):
         # Parameters
         A tuple containing:
             - The constrained JAX Array (x > self.lb).
-            - A scalar JAX Array representing the laj of the transformation.
+            - A scalar JAX Array representing the log-absolute-Jacobian of the transformation.
         """
         # Compute transformation adjustment
         ladj: Scalar = jnp.sum(x)
