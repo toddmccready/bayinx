@@ -6,7 +6,7 @@ from jaxtyping import Array, ArrayLike, Scalar, ScalarLike
 from bayinx.core.constraint import Constraint
 
 
-class LowerBound(Constraint):
+class Lower(Constraint):
     """
     Enforces a lower bound on the parameter.
     """
