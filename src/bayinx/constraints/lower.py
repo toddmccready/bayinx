@@ -29,9 +29,9 @@ class Lower(Constraint):
             - A scalar JAX Array representing the log-absolute-Jacobian of the transformation.
         """
         # Compute transformation adjustment
-        ladj: Scalar = jnp.sum(x)
+        laj: Scalar = jnp.sum(x)
 
         # Compute transformation
         x = jnp.exp(x) + self.lb
 
-        return x, ladj
+        return x, laj
