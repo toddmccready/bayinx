@@ -30,19 +30,19 @@ class FullAffine(Flow):
             "scale": jnp.zeros((dim, dim)),
         }
 
-        self.constraints = {"scale": lambda m: jnp.tril(m)}
+        if dim == 1:
+            self.constraints = {}
+        else:
+            @eqx.filter_jit
+            def constrain_scale(scale: Array):
+                # Extract diagonal and apply exponential
+                diag: Array = jnp.exp(jnp.diag(scale))
 
-    @eqx.filter_jit
-    def transform_pars(self):
-        params = self.constrain_pars()
+                # Return matrix with modified diagonal
+                return jnp.fill_diagonal(scale, diag, inplace=False)
 
-        # Extract diagonal and apply exponential
-        diag: Array = jnp.exp(jnp.diag(params["scale"]))
+            self.constraints = {"scale": constrain_scale}
 
-        # Fill diagonal
-        params["scale"] = jnp.fill_diagonal(params["scale"], diag, inplace=False)
-
-        return params
 
     @eqx.filter_jit
     def forward(self, draws: Array) -> Array:
