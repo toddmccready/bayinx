@@ -40,7 +40,7 @@ class FullAffine(Flow):
                 diag: Array = jnp.exp(jnp.diag(scale))
 
                 # Return matrix with modified diagonal
-                return jnp.fill_diagonal(scale, diag, inplace=False)
+                return jnp.fill_diagonal(jnp.tril(scale), diag, inplace=False)
 
             self.constraints = {"scale": constrain_scale}
 
