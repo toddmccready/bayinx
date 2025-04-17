@@ -1,10 +1,10 @@
 import jax.lax as lax
 from jax.scipy.special import gammaln
-from jaxtyping import Array, ArrayLike, Float, Real
+from jaxtyping import Array, ArrayLike, Float
 
 
 def prob(
-    x: Real[ArrayLike, "..."], mu: Real[ArrayLike, "..."], nu: Real[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."], mu: Float[ArrayLike, "..."], nu: Float[ArrayLike, "..."]
 ) -> Float[Array, "..."]:
     """
     The probability density function (PDF) for a (mean-precision parameterized) Gamma distribution.
@@ -22,7 +22,7 @@ def prob(
 
 
 def logprob(
-    x: Real[ArrayLike, "..."], mu: Real[ArrayLike, "..."], nu: Real[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."], mu: Float[ArrayLike, "..."], nu: Float[ArrayLike, "..."]
 ) -> Float[Array, "..."]:
     """
     The log-transformed probability density function (log PDF) for a (mean-precision parameterized) Gamma distribution.

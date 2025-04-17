@@ -3,10 +3,10 @@ from typing import Any, Dict, Tuple
 
 import equinox as eqx
 import jax.numpy as jnp
-import jax.tree_util as jtu
+import jax.tree as jt
 from jaxtyping import Array, Scalar
 
-from bayinx.core.constraints import Constraint
+from bayinx.core.constraint import Constraint
 
 
 class Model(eqx.Module):
@@ -31,13 +31,13 @@ class Model(eqx.Module):
         Generates a filter specification to subset relevant parameters for the model.
         """
         # Generate empty specification
-        filter_spec = jtu.tree_map(lambda _: False, self)
+        filter_spec = jt.map(lambda _: False, self)
 
         # Specify JAX Array parameters
         filter_spec = eqx.tree_at(
             lambda model: model.params,
             filter_spec,
-            replace=jtu.tree_map(eqx.is_array, self.params),
+            replace=jt.map(eqx.is_array, self.params),
         )
 
         return filter_spec

@@ -1,10 +1,10 @@
 import jax.lax as _lax
 import jax.numpy as jnp
-from jaxtyping import Array, ArrayLike, Float, Real
+from jaxtyping import Array, ArrayLike, Float
 
 
 def prob(
-    x: Real[ArrayLike, "..."], lb: Real[ArrayLike, "..."], ub: Real[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."], lb: Float[ArrayLike, "..."], ub: Float[ArrayLike, "..."]
 ) -> Float[Array, "..."]:
     """
     The probability density function (PDF) for a Uniform distribution.
@@ -22,7 +22,7 @@ def prob(
 
 
 def logprob(
-    x: Real[ArrayLike, "..."], lb: Real[ArrayLike, "..."], ub: Real[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."], lb: Float[ArrayLike, "..."], ub: Float[ArrayLike, "..."]
 ) -> Float[Array, "..."]:
     """
     The log of the probability density function (log PDF) for a Uniform distribution.
@@ -40,7 +40,7 @@ def logprob(
 
 
 def uprob(
-    x: Real[ArrayLike, "..."], lb: Real[ArrayLike, "..."], ub: Real[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."], lb: Float[ArrayLike, "..."], ub: Float[ArrayLike, "..."]
 ) -> Float[Array, "..."]:
     """
     The unnormalized probability density function (uPDF) for a Uniform distribution.
@@ -58,7 +58,7 @@ def uprob(
 
 
 def ulogprob(
-    x: Real[ArrayLike, "..."], lb: Real[ArrayLike, "..."], ub: Real[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."], lb: Float[ArrayLike, "..."], ub: Float[ArrayLike, "..."]
 ) -> Float[Array, "..."]:
     """
     The log of the unnormalized probability density function (log uPDF) for a Uniform distribution.

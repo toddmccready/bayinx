@@ -1,11 +1,11 @@
 import jax.lax as lax
-from jaxtyping import Array, ArrayLike, Float, Real
+from jaxtyping import Array, ArrayLike, Float
 
 __PI = 3.141592653589793
 
 
 def prob(
-    x: Real[ArrayLike, "..."], mu: Real[ArrayLike, "..."], sigma: Real[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."], mu: Float[ArrayLike, "..."], sigma: Float[ArrayLike, "..."]
 ) -> Float[Array, "..."]:
     """
     The probability density function (PDF) for a Normal distribution.
@@ -25,7 +25,7 @@ def prob(
 
 
 def logprob(
-    x: Real[ArrayLike, "..."], mu: Real[ArrayLike, "..."], sigma: Real[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."], mu: Float[ArrayLike, "..."], sigma: Float[ArrayLike, "..."]
 ) -> Float[Array, "..."]:
     """
     The log of the probability density function (log PDF) for a Normal distribution.
@@ -45,7 +45,7 @@ def logprob(
 
 
 def uprob(
-    x: Real[ArrayLike, "..."], mu: Real[ArrayLike, "..."], sigma: Real[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."], mu: Float[ArrayLike, "..."], sigma: Float[ArrayLike, "..."]
 ) -> Float[Array, "..."]:
     """
     The unnormalized probability density function (uPDF) for a Normal distribution.
@@ -63,7 +63,7 @@ def uprob(
 
 
 def ulogprob(
-    x: Real[ArrayLike, "..."], mu: Real[ArrayLike, "..."], sigma: Real[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."], mu: Float[ArrayLike, "..."], sigma: Float[ArrayLike, "..."]
 ) -> Float[Array, "..."]:
     """
     The log of the unnormalized probability density function (log uPDF) for a Normal distribution.
