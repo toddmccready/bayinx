@@ -11,7 +11,7 @@ def prob(
 
     # Parameters
     - `x`:      Value(s) at which to evaluate the PDF.
-    - `mu`:     The mean.
+    - `mu`:     The positive mean.
     - `nu`:     The positive inverse dispersion.
 
     # Returns
@@ -29,7 +29,7 @@ def logprob(
 
     # Parameters
     - `x`:      Value(s) at which to evaluate the log PDF.
-    - `mu`:     The mean/location.
+    - `mu`:     The positive mean/location.
     - `nu`:     The positive inverse dispersion.
 
     # Returns

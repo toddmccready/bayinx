@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Self
+from typing import Any, Dict, Self
 
 import equinox as eqx
 import jax.numpy as jnp
@@ -20,8 +20,6 @@ class MeanField(Variational):
     """
 
     var_params: Dict[str, Float[Array, "..."]]
-    _unflatten: Callable[[Float[Array, "..."]], Model]
-    _constraints: Model
 
     def __init__(self, model: Model):
         """

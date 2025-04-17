@@ -19,8 +19,8 @@ class Variational(eqx.Module):
     An abstract base class used to define variational methods.
 
     # Attributes
-    - `_unflatten`: A static function to transform draws from the variational distribution back to a `Model`.
-    - `_constraints`: A static partitioned `Model` with the constraints of the `Model` used to initialize the `Variational` object.
+    - `_unflatten`: A function to transform draws from the variational distribution back to a `Model`.
+    - `_constraints`: The static component of a partitioned `Model` used to initialize the `Variational` object.
     """
 
     _unflatten: Callable[[Array], Model]
