@@ -15,7 +15,7 @@ class Model(eqx.Module):
     An abstract base class used to define probabilistic models.
 
     # Attributes
-    - `params`: A dictionary of Arrays or PyTrees containing Arrays representing parameters of the model.
+    - `params`: A dictionary of parameters.
     - `constraints`: A dictionary of constraints.
     """
 
