@@ -49,7 +49,7 @@ class Radial(Flow):
         # Returns
         The transformed samples.
         """
-        params = self.transform_pars()
+        params = self.transform_params()
 
         # Extract parameters
         alpha = params["alpha"]
@@ -67,7 +67,7 @@ class Radial(Flow):
     @partial(jax.vmap, in_axes=(None, 0))
     @eqx.filter_jit
     def adjust_density(self, draws: Array) -> Tuple[Array, Scalar]:
-        params = self.transform_pars()
+        params = self.transform_params()
 
         # Extract parameters
         alpha = params["alpha"]

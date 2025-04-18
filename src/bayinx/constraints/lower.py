@@ -1,9 +1,12 @@
 from typing import Tuple
 
+import equinox as eqx
 import jax.numpy as jnp
-from jaxtyping import Array, ArrayLike, Scalar, ScalarLike
+import jax.tree as jt
+from jaxtyping import PyTree, Scalar, ScalarLike
 
 from bayinx.core.constraint import Constraint
+from bayinx.core.parameter import Parameter
 
 
 class Lower(Constraint):
@@ -11,27 +14,38 @@ class Lower(Constraint):
     Enforces a lower bound on the parameter.
     """
 
-    lb: ScalarLike
+    lb: Scalar
 
     def __init__(self, lb: ScalarLike):
-        self.lb = lb
+        self.lb = jnp.array(lb)
 
-    def constrain(self, x: ArrayLike) -> Tuple[Array, Scalar]:
+    @eqx.filter_jit
+    def constrain(self, x: Parameter) -> Tuple[Parameter, Scalar]:
         """
-        Applies the lower bound constraint and adjusts the posterior density.
+        Enforces a lower bound on the parameter and adjusts the posterior density.
 
         # Parameters
-        - `x`: The unconstrained JAX Array-like input.
+        - `x`: The unconstrained `Parameter`.
 
         # Parameters
         A tuple containing:
-            - The constrained JAX Array (x > self.lb).
-            - A scalar JAX Array representing the log-absolute-Jacobian of the transformation.
+            - A modified `Parameter` with relevant leaves satisfying the constraint.
+            - A scalar Array representing the log-absolute-Jacobian of the transformation.
         """
-        # Compute transformation adjustment
-        laj: Scalar = jnp.sum(x)
+        # Extract relevant filter specification
+        filter_spec = x.filter_spec
+
+        # Extract relevant parameters(all Array)
+        dyn_params, static_params = eqx.partition(x, filter_spec)
+
+        # Compute density adjustment
+        laj: PyTree = jt.map(jnp.sum, dyn_params) # pyright: ignore
+        laj: Scalar = jt.reduce(lambda a,b: a + b, laj)
 
         # Compute transformation
-        x = jnp.exp(x) + self.lb
+        dyn_params = jt.map(lambda v: jnp.exp(v) + self.lb, dyn_params)
+
+        # Combine into full parameter object
+        x = eqx.combine(dyn_params, static_params)
 
         return x, laj

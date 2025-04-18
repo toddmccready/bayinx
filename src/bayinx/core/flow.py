@@ -31,11 +31,13 @@ class Flow(eqx.Module):
         Computes the log-absolute-Jacobian at `draws` and applies the forward transformation.
 
         # Returns
-        A tuple of JAX Arrays containing the transformed draws and log-absolute-Jacobians.
+            A tuple of JAX Arrays containing the transformed draws and log-absolute-Jacobians.
         """
         pass
 
     # Default filter specification
+    @property
+    @eqx.filter_jit
     def filter_spec(self):
         """
         Generates a filter specification to subset relevant parameters for the flow.
@@ -53,7 +55,7 @@ class Flow(eqx.Module):
         return filter_spec
 
     @eqx.filter_jit
-    def constrain_pars(self: Self):
+    def constrain_params(self: Self):
         """
         Constrain `params` to the appropriate domain.
 
@@ -68,11 +70,11 @@ class Flow(eqx.Module):
         return t_params
 
     @eqx.filter_jit
-    def transform_pars(self: Self) -> Dict[str, Array]:
+    def transform_params(self: Self) -> Dict[str, Array]:
         """
         Apply a custom transformation to `params` if needed.
 
         # Returns
         A dictionary of transformed JAX Arrays representing the transformed parameters.
         """
-        return self.constrain_pars()
+        return self.constrain_params()

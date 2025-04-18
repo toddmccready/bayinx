@@ -103,7 +103,7 @@ class Variational(eqx.Module):
         - `key`: A PRNG key.
         """
         # Partition variational
-        dyn, static = eqx.partition(self, self.filter_spec())
+        dyn, static = eqx.partition(self, self.filter_spec)
 
         # Construct scheduler
         schedule: Schedule = opx.cosine_decay_schedule(
@@ -143,7 +143,7 @@ class Variational(eqx.Module):
 
             # Compute updates
             updates, opt_state = optim.update(
-                updates, opt_state, eqx.filter(dyn, dyn.filter_spec())
+                updates, opt_state, eqx.filter(dyn, dyn.filter_spec)
             )
 
             # Update variational distribution

@@ -2,7 +2,9 @@ from abc import abstractmethod
 from typing import Tuple
 
 import equinox as eqx
-from jaxtyping import Array, ArrayLike, Scalar
+from jaxtyping import Scalar
+
+from bayinx.core.parameter import Parameter
 
 
 class Constraint(eqx.Module):
@@ -11,16 +13,16 @@ class Constraint(eqx.Module):
     """
 
     @abstractmethod
-    def constrain(self, x: ArrayLike) -> Tuple[Array, Scalar]:
+    def constrain(self, x: Parameter) -> Tuple[Parameter, Scalar]:
         """
-        Applies the constraining transformation to an unconstrained input and computes the log-absolute-Jacobian of the transformation.
+        Applies the constraining transformation to a parameter and computes the log-absolute-Jacobian of the transformation.
 
         # Parameters
-        - `x`: The unconstrained JAX Array-like input.
+        - `x`: The unconstrained `Parameter`.
 
         # Returns
         A tuple containing:
-            - The constrained JAX Array.
-            - A scalar JAX Array representing the log-absolute-Jacobian of the transformation.
+            - The constrained `Parameter`.
+            - A scalar Array representing the log-absolute-Jacobian of the transformation.
         """
         pass

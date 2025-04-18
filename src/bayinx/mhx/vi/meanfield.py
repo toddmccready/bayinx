@@ -29,7 +29,7 @@ class MeanField(Variational):
         - `model`: A probabilistic `Model` object.
         """
         # Partition model
-        params, self._constraints = eqx.partition(model, model.filter_spec())
+        params, self._constraints = eqx.partition(model, model.filter_spec)
 
         # Flatten params component
         params, self._unflatten = ravel_pytree(params)
@@ -39,6 +39,22 @@ class MeanField(Variational):
             "mean": params,
             "log_std": jnp.zeros(params.size, dtype=params.dtype),
         }
+
+    @property
+    @eqx.filter_jit
+    def filter_spec(self):
+        # Generate empty specification
+        filter_spec = jtu.tree_map(lambda _: False, self)
+
+        # Specify variational parameters
+        filter_spec = eqx.tree_at(
+            lambda mf: mf.var_params,
+            filter_spec,
+            replace=True,
+        )
+
+        return filter_spec
+
 
     @eqx.filter_jit
     def sample(self, n: int, key: Key = jr.PRNGKey(0)) -> Array:
@@ -60,22 +76,8 @@ class MeanField(Variational):
         ).sum(axis=1)
 
     @eqx.filter_jit
-    def filter_spec(self):
-        # Generate empty specification
-        filter_spec = jtu.tree_map(lambda _: False, self)
-
-        # Specify variational parameters
-        filter_spec = eqx.tree_at(
-            lambda mf: mf.var_params,
-            filter_spec,
-            replace=True,
-        )
-
-        return filter_spec
-
-    @eqx.filter_jit
     def elbo(self, n: int, key: Key, data: Any = None) -> Scalar:
-        dyn, static = eqx.partition(self, self.filter_spec())
+        dyn, static = eqx.partition(self, self.filter_spec)
 
         @eqx.filter_jit
         def elbo(dyn: Self, n: int, key: Key, data: Any = None) -> Scalar:
@@ -97,7 +99,7 @@ class MeanField(Variational):
 
     @eqx.filter_jit
     def elbo_grad(self, n: int, key: Key, data: Any = None) -> Self:
-        dyn, static = eqx.partition(self, self.filter_spec())
+        dyn, static = eqx.partition(self, self.filter_spec)
 
         @eqx.filter_grad
         @eqx.filter_jit

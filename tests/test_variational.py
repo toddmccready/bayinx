@@ -1,11 +1,9 @@
-from typing import Callable, Dict
 
 import equinox as eqx
 import jax.numpy as jnp
 import pytest
-from jaxtyping import Array
 
-from bayinx import Model
+from bayinx import Model, Parameter
 from bayinx.dists import normal
 from bayinx.mhx.vi import MeanField, NormalizingFlow, Standard
 from bayinx.mhx.vi.flows import FullAffine, Planar, Radial
@@ -16,21 +14,18 @@ from bayinx.mhx.vi.flows import FullAffine, Planar, Radial
 def test_meanfield(benchmark, var_draws):
     # Construct model definition
     class NormalDist(Model):
-        params: Dict[str, Array]
-        constraints: Dict[str, Callable[[Array], Array]]
-
         def __init__(self):
-            self.params = {"mu": jnp.array([0.0, 0.0])}
+            self.params = {"mu": Parameter(jnp.array([0.0, 0.0]))}
             self.constraints = {}
 
         @eqx.filter_jit
-        def eval(self, data: dict):
+        def eval(self, data = None):
             # Get constrained parameters
-            params, target = self.constrain_pars()
+            params, target = self.constrain_params()
 
             # Evaluate mu ~ N(10,1)
             target += normal.logprob(
-                x=params["mu"], mu=jnp.array(10.0), sigma=jnp.array(1.0)
+                x=params["mu"].vals, mu=jnp.array(10.0), sigma=jnp.array(1.0)
             ).sum()
 
             # Evaluate mu ~ N(10,1)
@@ -59,21 +54,19 @@ def test_meanfield(benchmark, var_draws):
 def test_affine(benchmark, var_draws):
     # Construct model definition
     class NormalDist(Model):
-        params: Dict[str, Array]
-        constraints: Dict[str, Callable[[Array], Array]]
 
         def __init__(self):
-            self.params = {"mu": jnp.array([0.0, 0.0])}
+            self.params = {"mu": Parameter(jnp.array([0.0, 0.0]))}
             self.constraints = {}
 
         @eqx.filter_jit
         def eval(self, data: dict):
             # Get constrained parameters
-            params, target = self.constrain_pars()
+            params, target = self.constrain_params()
 
             # Evaluate mu ~ N(10,1)
             target += normal.logprob(
-                x=params["mu"], mu=jnp.array(10.0), sigma=jnp.array(1.0)
+                x=params["mu"].vals, mu=jnp.array(10.0), sigma=jnp.array(1.0)
             ).sum()
 
             # Evaluate mu ~ N(10,1)
@@ -92,7 +85,7 @@ def test_affine(benchmark, var_draws):
     benchmark(benchmark_fit)
     vari = vari.fit(20000, var_draws=var_draws)
 
-    params = vari.flows[0].transform_pars()
+    params = vari.flows[0].transform_params()
     assert (abs(10.0 - vari.flows[0].params["shift"]) < 0.1).all() and (
         abs(jnp.eye(2) - params["scale"]) < 0.1
     ).all()
@@ -102,21 +95,18 @@ def test_affine(benchmark, var_draws):
 def test_flows(benchmark, var_draws):
     # Construct model definition
     class NormalDist(Model):
-        params: Dict[str, Array]
-        constraints: Dict[str, Callable[[Array], Array]]
-
         def __init__(self):
-            self.params = {"mu": jnp.array([0.0, 0.0])}
+            self.params = {"mu": Parameter(jnp.array([0.0, 0.0]))}
             self.constraints = {}
 
         @eqx.filter_jit
         def eval(self, data: dict):
             # Get constrained parameters
-            params, target = self.constrain_pars()
+            params, target = self.constrain_params()
 
             # Evaluate mu ~ N(10,1)
             target += normal.logprob(
-                x=params["mu"], mu=jnp.array(10.0), sigma=jnp.array(1.0)
+                x=params["mu"].vals, mu=jnp.array(10.0), sigma=jnp.array(1.0)
             ).sum()
 
             return target

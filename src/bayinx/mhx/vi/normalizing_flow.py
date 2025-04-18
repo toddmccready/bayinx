@@ -33,7 +33,7 @@ class NormalizingFlow(Variational):
         - `model`: A probabilistic `Model` object.
         """
         # Partition model
-        params, self._constraints = eqx.partition(model, eqx.is_array)
+        params, self._constraints = eqx.partition(model, model.filter_spec)
 
         # Flatten params component
         _, self._unflatten = jfu.ravel_pytree(params)
@@ -41,6 +41,8 @@ class NormalizingFlow(Variational):
         self.base = base
         self.flows = flows
 
+    @property
+    @eqx.filter_jit
     def filter_spec(self):
         # Generate empty specification
         filter_spec = jtu.tree_map(lambda _: False, self)
@@ -49,7 +51,7 @@ class NormalizingFlow(Variational):
         filter_spec = eqx.tree_at(
             lambda vari: vari.flows,
             filter_spec,
-            replace=[flow.filter_spec() for flow in self.flows],
+            replace=[flow.filter_spec for flow in self.flows],
         )
 
         return filter_spec
@@ -112,7 +114,7 @@ class NormalizingFlow(Variational):
 
     @eqx.filter_jit
     def elbo(self, n: int, key: Key = jr.PRNGKey(0), data: Any = None) -> Scalar:
-        dyn, static = eqx.partition(self, self.filter_spec())
+        dyn, static = eqx.partition(self, self.filter_spec)
 
         @eqx.filter_jit
         def elbo(dyn: Self, n: int, key: Key, data: Any = None):
@@ -129,7 +131,7 @@ class NormalizingFlow(Variational):
 
     @eqx.filter_jit
     def elbo_grad(self, n: int, key: Key, data: Any = None) -> Self:
-        dyn, static = eqx.partition(self, self.filter_spec())
+        dyn, static = eqx.partition(self, self.filter_spec)
 
         @eqx.filter_grad
         @eqx.filter_jit

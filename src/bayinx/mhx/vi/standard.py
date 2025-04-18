@@ -19,7 +19,7 @@ class Standard(Variational):
     - `dim`: Dimension of the parameter space.
     """
 
-    dim: int = eqx.field(static=True)
+    dim: int
     _unflatten: Callable[[Float[Array, "..."]], Model]
     _constraints: Model
 
@@ -31,7 +31,7 @@ class Standard(Variational):
         - `model`: A probabilistic `Model` object.
         """
         # Partition model
-        params, self._constraints = eqx.partition(model, model.filter_spec())
+        params, self._constraints = eqx.partition(model, model.filter_spec)
 
         # Flatten params component
         params, self._unflatten = ravel_pytree(params)
@@ -54,7 +54,7 @@ class Standard(Variational):
             sigma=jnp.array(1.0),
         ).sum(axis=1, keepdims=True)
 
-    @eqx.filter_jit
+    @property
     def filter_spec(self):
         filter_spec = jtu.tree_map(lambda _: False, self)
 

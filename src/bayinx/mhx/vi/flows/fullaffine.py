@@ -46,7 +46,7 @@ class FullAffine(Flow):
 
     @eqx.filter_jit
     def forward(self, draws: Array) -> Array:
-        params = self.transform_pars()
+        params = self.transform_params()
 
         # Extract parameters
         shift: Array = params["shift"]
@@ -60,7 +60,7 @@ class FullAffine(Flow):
     @eqx.filter_jit
     @partial(jax.vmap, in_axes=(None, 0))
     def adjust_density(self, draws: Array) -> Tuple[Array, Scalar]:
-        params = self.transform_pars()
+        params = self.transform_params()
 
         # Extract parameters
         shift: Array = params["shift"]
