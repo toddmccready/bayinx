@@ -16,7 +16,7 @@ from bayinx.mhx.vi.flows import FullAffine, Planar, Radial
 @pytest.mark.parametrize("var_draws", [1, 10, 100])
 def test_meanfield(benchmark, var_draws):
     # Construct model definition
-    class NormalDist(Model):
+    class NormalDist(Model[Array]):
         params: Dict[str, Parameter[Array]]
 
         def __init__(self):

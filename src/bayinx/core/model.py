@@ -1,16 +1,16 @@
 from abc import abstractmethod
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Generic, Tuple, TypeVar
 
 import equinox as eqx
 import jax.numpy as jnp
 import jax.tree as jt
-from jaxtyping import Array, PyTree, Scalar
+from jaxtyping import PyTree, Scalar
 
 from bayinx.core.constraint import Constraint
 from bayinx.core.parameter import Parameter
 
-
-class Model(eqx.Module):
+T = TypeVar('T', bound=PyTree)
+class Model(eqx.Module, Generic[T]):
     """
     An abstract base class used to define probabilistic models.
 
@@ -19,7 +19,7 @@ class Model(eqx.Module):
     - `constraints`: A dictionary of constraints.
     """
 
-    params: Dict[str, Parameter]
+    params: Dict[str, Parameter[T]]
     constraints: Dict[str, Constraint]
 
     @abstractmethod
@@ -47,14 +47,14 @@ class Model(eqx.Module):
 
     # Add constrain method
     @eqx.filter_jit
-    def constrain_params(self) -> Tuple[Dict[str, Parameter], Scalar]:
+    def constrain_params(self) -> Tuple[Dict[str, Parameter[T]], Scalar]:
         """
         Constrain `params` to the appropriate domain.
 
         # Returns
         A dictionary of PyTrees representing the constrained parameters and the adjustment to the posterior density.
         """
-        t_params: Dict[str, Array | PyTree] = self.params
+        t_params: Dict[str, Parameter[T]] = self.params
         target: Scalar = jnp.array(0.0)
 
         for par, map in self.constraints.items():
@@ -68,7 +68,7 @@ class Model(eqx.Module):
 
     # Add default transform method
     @eqx.filter_jit
-    def transform_params(self) -> Tuple[Dict[str, Parameter], Scalar]:
+    def transform_params(self) -> Tuple[Dict[str, Parameter[T]], Scalar]:
         """
         Apply a custom transformation to `params` if needed.
 
