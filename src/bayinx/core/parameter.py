@@ -21,6 +21,9 @@ class Parameter(eqx.Module, Generic[T]):
         # Insert parameter values
         self.vals = values
 
+    def __call__(self) -> T:
+        return self.vals
+
     # Default filter specification
     @property
     @eqx.filter_jit

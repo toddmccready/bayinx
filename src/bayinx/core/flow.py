@@ -11,7 +11,7 @@ class Flow(eqx.Module):
     An abstract base class for a flow(of a normalizing flow).
 
     # Attributes
-    - `pars`: A dictionary of JAX Arrays representing parameters of the diffeomorphism.
+    - `params`: A dictionary of JAX Arrays representing parameters of the diffeomorphism.
     - `constraints`: A dictionary of simple functions that constrain their corresponding parameter.
     """
 
