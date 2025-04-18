@@ -4,7 +4,7 @@ from typing import Any, Dict, Tuple
 import equinox as eqx
 import jax.numpy as jnp
 import jax.tree as jt
-from jaxtyping import Array, Scalar
+from jaxtyping import Array, PyTree, Scalar
 
 from bayinx.core.constraint import Constraint
 
@@ -18,7 +18,7 @@ class Model(eqx.Module):
     - `constraints`: A dictionary of constraints.
     """
 
-    params: Dict[str, Array]
+    params: Dict[str, PyTree]
     constraints: Dict[str, Constraint]
 
     @abstractmethod
