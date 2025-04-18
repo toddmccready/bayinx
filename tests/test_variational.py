@@ -1,4 +1,3 @@
-
 from typing import Dict
 
 import equinox as eqx
@@ -12,30 +11,26 @@ from bayinx.mhx.vi import MeanField, NormalizingFlow, Standard
 from bayinx.mhx.vi.flows import FullAffine, Planar, Radial
 
 
+class NormalDist(Model[Dict[str, Parameter[Array]]]):
+    def __init__(self):
+        self.params = {"mu": Parameter(jnp.array([0.0, 0.0]))}
+        self.constraints = {}
+
+    @eqx.filter_jit
+    def eval(self, data = None):
+        # Get constrained parameters
+        params, target = self.constrain_params()
+
+        # Evaluate mu ~ N(10,1)
+        target += normal.logprob(
+            x=params["mu"].vals, mu=jnp.array(10.0), sigma=jnp.array(1.0)
+        ).sum()
+
+        return target
+
 # Tests ----
 @pytest.mark.parametrize("var_draws", [1, 10, 100])
 def test_meanfield(benchmark, var_draws):
-    # Construct model definition
-    class NormalDist(Model[Array]):
-        params: Dict[str, Parameter[Array]]
-
-        def __init__(self):
-            self.params = {"mu": Parameter(jnp.array([0.0, 0.0]))}
-            self.constraints = {}
-
-        @eqx.filter_jit
-        def eval(self, data = None):
-            # Get constrained parameters
-            params, target = self.constrain_params()
-
-            # Evaluate mu ~ N(10,1)
-            target += normal.logprob(
-                x=params["mu"].vals, mu=jnp.array(10.0), sigma=jnp.array(1.0)
-            ).sum()
-
-            # Evaluate mu ~ N(10,1)
-            return target
-
     # Construct model
     model = NormalDist()
 
@@ -57,26 +52,6 @@ def test_meanfield(benchmark, var_draws):
 
 @pytest.mark.parametrize("var_draws", [1, 10, 100])
 def test_affine(benchmark, var_draws):
-    # Construct model definition
-    class NormalDist(Model):
-
-        def __init__(self):
-            self.params = {"mu": Parameter(jnp.array([0.0, 0.0]))}
-            self.constraints = {}
-
-        @eqx.filter_jit
-        def eval(self, data: dict):
-            # Get constrained parameters
-            params, target = self.constrain_params()
-
-            # Evaluate mu ~ N(10,1)
-            target += normal.logprob(
-                x=params["mu"].vals, mu=jnp.array(10.0), sigma=jnp.array(1.0)
-            ).sum()
-
-            # Evaluate mu ~ N(10,1)
-            return target
-
     # Construct model
     model = NormalDist()
 
