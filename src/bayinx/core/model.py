@@ -67,6 +67,7 @@ class Model(eqx.Module):
         return t_params, target
 
     # Add default transform method
+    @eqx.filter_jit
     def transform_params(self) -> Tuple[Dict[str, Parameter], Scalar]:
         """
         Apply a custom transformation to `params` if needed.
