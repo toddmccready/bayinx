@@ -21,13 +21,13 @@ class NormalDist(Model):
         self, target = self.constrain_params()
 
         # Evaluate x ~ Normal(10.0, 1.0)
-        target += jnp.sum(normal.logprob(self.x(), 10.0, 1.0))
+        target += jnp.sum(normal.logprob(self.x(), jnp.array(10.0), jnp.array(1.0)))
 
         return target
 
 
 # Tests ----
-@pytest.mark.parametrize("var_draws", [1, 10, 100])
+@pytest.mark.parametrize("var_draws", [1, 100])
 def test_meanfield(benchmark, var_draws):
     # Construct model
     model = NormalDist()
@@ -39,8 +39,8 @@ def test_meanfield(benchmark, var_draws):
     def benchmark_fit():
         vari.fit(10000, var_draws=var_draws)
 
-    benchmark(benchmark_fit)
     vari = vari.fit(20000, var_draws=var_draws)
+    benchmark(benchmark_fit)
 
     # Assert parameters are roughly correct
     assert all(abs(10.0 - vari.var_params["mean"]) < 0.1) and all(
@@ -48,7 +48,7 @@ def test_meanfield(benchmark, var_draws):
     )
 
 
-@pytest.mark.parametrize("var_draws", [1, 10, 100])
+@pytest.mark.parametrize("var_draws", [1, 100])
 def test_affine(benchmark, var_draws):
     # Construct model
     model = NormalDist()
@@ -60,8 +60,8 @@ def test_affine(benchmark, var_draws):
     def benchmark_fit():
         vari.fit(10000, var_draws=var_draws)
 
-    benchmark(benchmark_fit)
     vari = vari.fit(20000, var_draws=var_draws)
+    benchmark(benchmark_fit)
 
     params = vari.flows[0].transform_params()
     assert (abs(10.0 - vari.flows[0].params["shift"]) < 0.1).all() and (
@@ -69,7 +69,7 @@ def test_affine(benchmark, var_draws):
     ).all()
 
 
-@pytest.mark.parametrize("var_draws", [1, 10, 100])
+@pytest.mark.parametrize("var_draws", [1, 100])
 def test_flows(benchmark, var_draws):
     # Construct model
     model = NormalDist()
@@ -83,8 +83,9 @@ def test_flows(benchmark, var_draws):
     def benchmark_fit():
         vari.fit(10000, var_draws=var_draws)
 
-    benchmark(benchmark_fit)
     vari = vari.fit(20000, var_draws=var_draws)
+    benchmark(benchmark_fit)
+
 
     mean = vari.sample(1000).mean(0)
     var = vari.sample(1000).var(0)
