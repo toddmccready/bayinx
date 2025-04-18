@@ -1,7 +1,10 @@
 
+from typing import Dict
+
 import equinox as eqx
 import jax.numpy as jnp
 import pytest
+from jaxtyping import Array
 
 from bayinx import Model, Parameter
 from bayinx.dists import normal
@@ -14,6 +17,8 @@ from bayinx.mhx.vi.flows import FullAffine, Planar, Radial
 def test_meanfield(benchmark, var_draws):
     # Construct model definition
     class NormalDist(Model):
+        params: Dict[str, Parameter[Array]]
+
         def __init__(self):
             self.params = {"mu": Parameter(jnp.array([0.0, 0.0]))}
             self.constraints = {}
