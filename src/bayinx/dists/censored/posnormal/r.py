@@ -11,7 +11,7 @@ def prob(
     censor: Float[ArrayLike, "..."]
 ) -> Float[Array, "..."]:
     """
-    The mixed probability mass/density function (PMF/PDF) for a censored positive Normal distribution.
+    The mixed probability mass/density function (PMF/PDF) for a right-censored positive Normal distribution.
 
     # Parameters
     - `x`:  Value(s) at which to evaluate the PMF/PDF.
@@ -43,7 +43,7 @@ def logprob(
     censor: Float[ArrayLike, "..."]
 ) -> Float[Array, "..."]:
     """
-    The log-transformed mixed probability mass/density function (log PMF/PDF) for a censored positive Normal distribution.
+    The log-transformed mixed probability mass/density function (log PMF/PDF) for a right-censored positive Normal distribution.
 
     # Parameters
     - `x`: Where to evaluate the log PMF/PDF.
@@ -57,7 +57,7 @@ def logprob(
     # Cast to Array
     x, mu, sigma, censor = jnp.array(x), jnp.array(mu), jnp.array(sigma), jnp.array(censor)
 
-    # Construct boolean masks
+    # Construct boolean masks for censoring
     uncensored: Array = jnp.logical_and(jnp.array(0.0) < x, x < censor)
     censored: Array = x == censor
 
