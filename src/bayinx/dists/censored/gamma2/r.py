@@ -19,9 +19,10 @@ def prob(
     - `x`:  Value(s) at which to evaluate the PMF/PDF.
     - `mu`: The positive mean.
     - `nu`: The positive inverse dispersion.
+    - `censor`: The positive censor value.
 
     # Returns
-    The PMF/PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `nu`.
+    The PMF/PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, `nu`, and `censor`.
     """
     evals: Array = jnp.zeros_like(x * 1.0) # ensure float dtype
 
@@ -29,7 +30,7 @@ def prob(
     uncensored: Array = jnp.array(jnp.logical_and(0.0 < x, x < censor)) # pyright: ignore
     censored: Array = jnp.array(x == censor) # pyright: ignore
 
-    # Evaluate mixed probability (?) function
+    # Evaluate probability mass/density function
     evals = jnp.where(uncensored, gamma2.prob(x, mu, nu), evals)
     evals = jnp.where(censored, gammaincc(nu, x * nu / mu), evals) # pyright: ignore
 
@@ -49,9 +50,10 @@ def logprob(
     - `x`:      Value(s) at which to evaluate the log PMF/PDF.
     - `mu`:     The positive mean/location.
     - `nu`:     The positive inverse dispersion.
+    - `censor`: The positive censor value.
 
     # Returns
-    The log PMF/PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `nu`.
+    The log PMF/PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, `nu`, and `censor`.
     """
     evals: Array = jnp.full_like(x * 1.0, -jnp.inf) # ensure float dtype
 
@@ -59,6 +61,7 @@ def logprob(
     uncensored: Array = jnp.array(jnp.logical_and(0.0 < x, x < censor)) # pyright: ignore
     censored: Array = jnp.array(x == censor) # pyright: ignore
 
+    # Evaluate log probability mass/density function
     evals = jnp.where(uncensored, gamma2.logprob(x, mu, nu), evals)
     evals = jnp.where(censored, lax.log(gammaincc(nu, x * nu / mu)), evals) # pyright: ignore
 
