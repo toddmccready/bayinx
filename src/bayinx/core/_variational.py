@@ -11,7 +11,7 @@ import optax as opx
 from jaxtyping import Array, Key, PyTree, Scalar
 from optax import GradientTransformation, OptState, Schedule
 
-from bayinx.core import Model
+from ._model import Model
 
 
 class Variational(eqx.Module):

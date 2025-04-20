@@ -13,7 +13,7 @@ def prob(
     The probability density function (PDF) for a positive Normal distribution.
 
     # Parameters
-    - `x`: Value(s) at which to evaluate the PDF.
+    - `x`: Where to evaluate the PDF.
     - `mu`: The mean.
     - `sigma`: The standard deviation.
 
@@ -21,16 +21,16 @@ def prob(
     The PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `sigma`.
     """
     # Cast to Array
-    x, mu, sigma = jnp.array(x), jnp.array(mu), jnp.array(sigma)
+    x, mu, sigma = jnp.asarray(x), jnp.asarray(mu), jnp.asarray(sigma)
 
     # Construct boolean mask for non-negative elements
-    non_negative: Array = jnp.array(0.0) <= x
+    non_negative: Array = jnp.asarray(0.0) <= x
 
     # Evaluate PDF
     evals = jnp.where(
         non_negative,
         normal.prob(x, mu, sigma) / normal.cdf(mu / sigma, 0.0, 1.0),
-        jnp.array(0.0),
+        jnp.asarray(0.0),
     )
 
     return evals
@@ -45,7 +45,7 @@ def logprob(
     The log of the probability density function (log PDF) for a positive Normal distribution.
 
     # Parameters
-    - `x`: Value(s) at which to evaluate the log PDF.
+    - `x`: Where to evaluate the log PDF.
     - `mu`: The mean.
     - `sigma`: The standard deviation.
 
@@ -53,10 +53,10 @@ def logprob(
     The log PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `sigma`.
     """
     # Cast to Array
-    x, mu, sigma = jnp.array(x), jnp.array(mu), jnp.array(sigma)
+    x, mu, sigma = jnp.asarray(x), jnp.asarray(mu), jnp.asarray(sigma)
 
     # Construct boolean mask for non-negative elements
-    non_negative: Array = jnp.array(0.0) <= x
+    non_negative: Array = jnp.asarray(0.0) <= x
 
     # Evaluate log PDF
     evals = jnp.where(
@@ -77,21 +77,21 @@ def uprob(
     The unnormalized probability density function (uPDF) for a positive Normal distribution.
 
     # Parameters
-    - `x`: Value(s) at which to evaluate the uPDF.
-    - `mu`: The mean/location parameter(s).
-    - `sigma`: The positive standard deviation parameter(s).
+    - `x`: Where to evaluate the uPDF.
+    - `mu`: The mean.
+    - `sigma`: The standard deviation.
 
     # Returns
     The uPDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `sigma`.
     """
     # Cast to Array
-    x, mu, sigma = jnp.array(x), jnp.array(mu), jnp.array(sigma)
+    x, mu, sigma = jnp.asarray(x), jnp.asarray(mu), jnp.asarray(sigma)
 
     # Construct boolean mask for non-negative elements
-    non_negative: Array = jnp.array(0.0) <= x
+    non_negative: Array = jnp.asarray(0.0) <= x
 
     # Evaluate PDF
-    evals = jnp.where(non_negative, normal.prob(x, mu, sigma), jnp.array(0.0))
+    evals = jnp.where(non_negative, normal.prob(x, mu, sigma), jnp.asarray(0.0))
 
     return evals
 
@@ -105,18 +105,18 @@ def ulogprob(
     The log of the unnormalized probability density function (log uPDF) for a positive Normal distribution.
 
     # Parameters
-    - `x`: Value(s) at which to evaluate the log uPDF.
-    - `mu`: The mean/location parameter(s).
-    - `sigma`: The non-negative standard deviation parameter(s).
+    - `x`: Where to evaluate the log uPDF.
+    - `mu`: The mean.
+    - `sigma`: The standard deviation.
 
     # Returns
     The log uPDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `sigma`.
     """
     # Cast to Array
-    x, mu, sigma = jnp.array(x), jnp.array(mu), jnp.array(sigma)
+    x, mu, sigma = jnp.asarray(x), jnp.asarray(mu), jnp.asarray(sigma)
 
     # Construct boolean mask for non-negative elements
-    non_negative: Array = jnp.array(0.0) <= x
+    non_negative: Array = jnp.asarray(0.0) <= x
 
     # Evaluate log PDF
     evals = jnp.where(non_negative, normal.logprob(x, mu, sigma), -jnp.inf)
@@ -133,9 +133,9 @@ def cdf(
     The cumulative density function (CDF) for a positive Normal distribution.
 
     # Parameters
-    - `x`: Value(s) at which to evaluate the log uPDF.
-    - `mu`: The mean/location parameter(s).
-    - `sigma`: The non-negative standard deviation parameter(s).
+    - `x`: Where to evaluate the CDF.
+    - `mu`: The mean.
+    - `sigma`: The standard deviation.
 
     # Returns
     The CDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `sigma`.
@@ -144,10 +144,10 @@ def cdf(
     Not numerically stable for small `x`.
     """
     # Cast to Array
-    x, mu, sigma = jnp.array(x), jnp.array(mu), jnp.array(sigma)
+    x, mu, sigma = jnp.asarray(x), jnp.asarray(mu), jnp.asarray(sigma)
 
     # Construct boolean mask for non-negative elements
-    non_negative: Array = jnp.array(0.0) <= x
+    non_negative: Array = jnp.asarray(0.0) <= x
 
     # Compute intermediates
     A: Array = normal.cdf(x, mu, sigma)
@@ -155,7 +155,7 @@ def cdf(
     C: Array = normal.cdf(mu / sigma, 0.0, 1.0)
 
     # Evaluate CDF
-    evals = jnp.where(non_negative, (A - B) / C, jnp.array(0.0))
+    evals = jnp.where(non_negative, (A - B) / C, jnp.asarray(0.0))
 
     return evals
 
@@ -170,9 +170,9 @@ def logcdf(
     The log-transformed cumulative density function (log CDF) for a positive Normal distribution.
 
     # Parameters
-    - `x`: Value(s) at which to evaluate the log uPDF.
-    - `mu`: The mean/location parameter(s).
-    - `sigma`: The non-negative standard deviation parameter(s).
+    - `x`: Where to evaluate the log CDF.
+    - `mu`: The mean.
+    - `sigma`: The standard deviation.
 
     # Returns
     The log CDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `sigma`.
@@ -181,10 +181,10 @@ def logcdf(
     Not numerically stable for small `x`.
     """
     # Cast to Array
-    x, mu, sigma = jnp.array(x), jnp.array(mu), jnp.array(sigma)
+    x, mu, sigma = jnp.asarray(x), jnp.asarray(mu), jnp.asarray(sigma)
 
     # Construct boolean mask for non-negative elements
-    non_negative: Array = jnp.array(0.0) <= x
+    non_negative: Array = jnp.asarray(0.0) <= x
 
     A: Array = normal.logcdf(x, mu, sigma)
     B: Array = normal.logcdf(-mu / sigma, 0.0, 1.0)
@@ -205,18 +205,15 @@ def ccdf(
     The complementary cumulative density function (cCDF) for a positive Normal distribution.
 
     # Parameters
-    - `x`: Value(s) at which to evaluate the log uPDF.
-    - `mu`: The mean/location parameter(s).
-    - `sigma`: The non-negative standard deviation parameter(s).
+    - `x`: Where to evaluate the cCDF.
+    - `mu`: The mean.
+    - `sigma`: The standard deviation.
 
     # Returns
     The cCDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `sigma`.
-
-    # Notes
-    Not numerically stable for small `x`.
     """
     # Cast to arrays
-    x, mu, sigma = jnp.array(x), jnp.array(mu), jnp.array(sigma)
+    x, mu, sigma = jnp.asarray(x), jnp.asarray(mu), jnp.asarray(sigma)
 
     # Construct boolean mask for non-negative elements
     non_negative: Array = 0.0 <= x
@@ -226,7 +223,7 @@ def ccdf(
     B: Array = normal.cdf(mu / sigma, 0.0, 1.0)
 
     # Evaluate cCDF
-    evals = jnp.where(non_negative, A / B, jnp.array(1.0))
+    evals = jnp.where(non_negative, A / B, jnp.asarray(1.0))
 
     return evals
 
@@ -240,18 +237,15 @@ def logccdf(
     The log-transformed complementary cumulative density function (log cCDF) for a positive Normal distribution.
 
     # Parameters
-    - `x`: Value(s) at which to evaluate the log uPDF.
-    - `mu`: The mean/location parameter(s).
-    - `sigma`: The non-negative standard deviation parameter(s).
+    - `x`: Where to evaluate the log cCDF.
+    - `mu`: The mean.
+    - `sigma`: The standard deviation.
 
     # Returns
     The log cCDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `sigma`.
-
-    # Notes
-    Not numerically stable for small `x`.
     """
     # Cast to arrays
-    x, mu, sigma = jnp.array(x), jnp.array(mu), jnp.array(sigma)
+    x, mu, sigma = jnp.asarray(x), jnp.asarray(mu), jnp.asarray(sigma)
 
     # Construct boolean mask for non-negative elements
     non_negative: Array = 0.0 <= x
@@ -261,6 +255,6 @@ def logccdf(
     B: Array = normal.logcdf(mu / sigma, 0.0, 1.0)
 
     # Evaluate log cCDF
-    evals = jnp.where(non_negative, A - B, jnp.array(0.0))
+    evals = jnp.where(non_negative, A - B, jnp.asarray(0.0))
 
     return evals
