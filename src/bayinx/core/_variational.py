@@ -106,8 +106,8 @@ class Variational(eqx.Module, Generic[M]):
         dyn, static = eqx.partition(self, self.filter_spec)
 
         # Construct scheduler
-        schedule: Schedule = opx.cosine_decay_schedule(
-            init_value=learning_rate, decay_steps=max_iters
+        schedule: Schedule = opx.warmup_cosine_decay_schedule(
+            init_value=1e-16, peak_value=learning_rate, warmup_steps=int(max_iters/10), decay_steps=max_iters-int(max_iters/10)
         )
 
         # Initialize optimizer
