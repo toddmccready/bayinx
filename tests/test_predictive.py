@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Any, Dict
 
 import jax.numpy as jnp
 from jaxtyping import Array
@@ -32,7 +32,7 @@ def test_predictive():
     vari = Standard(model)
 
     # Posterior predictive function
-    def extract_first_x(model: NormalDist) -> Array:
+    def extract_first_x(model: NormalDist, data: Any = None) -> Array:
         return model.x()[0]
 
     # Sample from posterior
