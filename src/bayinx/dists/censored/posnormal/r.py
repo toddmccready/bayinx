@@ -78,12 +78,13 @@ def logprob(
 
     return evals
 
+
 def sample(
     n: int,
     mu: Float[ArrayLike, "..."],
     sigma: Float[ArrayLike, "..."],
     censor: Float[ArrayLike, "..."] = jnp.inf,
-    key: Key = jr.PRNGKey(0)
+    key: Key = jr.PRNGKey(0),
 ) -> Float[Array, "..."]:
     """
     Sample from a right-censored positive Normal distribution.

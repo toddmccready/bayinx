@@ -9,7 +9,9 @@ from jaxtyping import Array, Key, Scalar
 
 from bayinx.core import Flow, Model, Variational
 
-M = TypeVar('M', bound=Model)
+M = TypeVar("M", bound=Model)
+
+
 class NormalizingFlow(Variational, Generic[M]):
     """
     An ordered collection of diffeomorphisms that map a base distribution to a

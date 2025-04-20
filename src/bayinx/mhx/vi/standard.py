@@ -1,4 +1,3 @@
-
 import equinox as eqx
 import jax.numpy as jnp
 import jax.random as jr
@@ -17,6 +16,7 @@ class Standard(Variational[M]):
     # Attributes
     - `dim`: Dimension of the parameter space.
     """
+
     dim: int
 
     def __init__(self, model: M):

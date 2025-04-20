@@ -5,6 +5,8 @@ import jax.tree as jt
 from jaxtyping import PyTree
 
 T = TypeVar("T", bound=PyTree)
+
+
 class Parameter(eqx.Module, Generic[T]):
     """
     A container for a parameter of a `Model`.

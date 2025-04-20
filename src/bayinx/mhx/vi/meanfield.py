@@ -10,7 +10,9 @@ from jaxtyping import Array, Float, Key, Scalar
 from bayinx.core import Model, Variational
 from bayinx.dists import normal
 
-M = TypeVar('M', bound=Model)
+M = TypeVar("M", bound=Model)
+
+
 class MeanField(Variational, Generic[M]):
     """
     A fully factorized Gaussian approximation to a posterior distribution.
@@ -19,7 +21,7 @@ class MeanField(Variational, Generic[M]):
     - `var_params`: The variational parameters for the approximation.
     """
 
-    var_params: Dict[str, Float[Array, "..."]] #todo: just expand to attributes
+    var_params: Dict[str, Float[Array, "..."]]  # todo: just expand to attributes
 
     def __init__(self, model: M):
         """
