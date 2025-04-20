@@ -1,8 +1,9 @@
 import jax.numpy as jnp
 import jax.random as jr
+from jax.scipy.special import ndtri
 from jaxtyping import Array, ArrayLike, Float, Key
 
-from bayinx.dists import posnormal
+from bayinx.dists import normal, posnormal
 
 
 def prob(
@@ -108,10 +109,8 @@ def sample(
     # Derive shape
     shape = (n,) + jnp.broadcast_shapes(mu.shape, sigma.shape, censor.shape)
 
-    # Draw from positive normal
-    draws = jr.truncated_normal(key, 0.0, jnp.inf, shape) * sigma + mu
-
-    # Censor values
-    draws = jnp.where(censor <= draws, censor, draws)
+    # Construct draws
+    draws = jr.uniform(key, shape)
+    draws = mu + sigma * ndtri(normal.cdf(-mu/sigma, 0.0, 1.0) + draws * normal.cdf(mu/sigma, 0.0, 1.0))
 
     return draws

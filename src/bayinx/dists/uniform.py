@@ -1,6 +1,7 @@
 import jax.lax as _lax
 import jax.numpy as jnp
-from jaxtyping import Array, ArrayLike, Float
+import jax.random as jr
+from jaxtyping import Array, ArrayLike, Float, Key
 
 
 def prob(
@@ -17,8 +18,10 @@ def prob(
     # Returns
     The PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `lb`, and `ub`.
     """
+    # Cast to Array
+    x, lb, ub = jnp.asarray(x), jnp.asarray(lb), jnp.asarray(ub)
 
-    return 1.0 / (ub - lb)  # pyright: ignore
+    return 1.0 / (ub - lb)
 
 
 def logprob(
@@ -35,8 +38,10 @@ def logprob(
     # Returns
     The log of the PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `lb`, and `ub`.
     """
+    # Cast to Array
+    x, lb, ub = jnp.asarray(x), jnp.asarray(lb), jnp.asarray(ub)
 
-    return _lax.log(1.0) - _lax.log(ub - lb)  # pyright: ignore
+    return _lax.log(1.0) - _lax.log(ub - lb)
 
 
 def uprob(
@@ -53,8 +58,10 @@ def uprob(
     # Returns
     The uPDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `lb`, and `ub`.
     """
+    # Cast to Array
+    x, lb, ub = jnp.asarray(x), jnp.asarray(lb), jnp.asarray(ub)
 
-    return jnp.ones(jnp.broadcast_arrays(x, lb, ub))
+    return jnp.ones(jnp.broadcast_shapes(x.shape, lb.shape, ub.shape))
 
 
 def ulogprob(
@@ -71,5 +78,32 @@ def ulogprob(
     # Returns
     The log uPDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `lb`, and `ub`.
     """
+    # Cast to Array
+    x, lb, ub = jnp.asarray(x), jnp.asarray(lb), jnp.asarray(ub)
 
-    return jnp.zeros(jnp.broadcast_arrays(x, lb, ub))
+    return jnp.zeros(jnp.broadcast_shapes(x.shape, lb.shape, ub.shape))
+
+def sample(
+    n: int, lb: Float[ArrayLike, "..."], ub: Float[ArrayLike, "..."], key: Key = jr.PRNGKey(0),
+) -> Float[Array, "..."]:
+    """
+    Sample from a Uniform distribution.
+
+    # Parameters
+    - `n`: Number of draws to sample per-parameter.
+    - `lb`: The lower bound parameter(s).
+    - `ub`: The upper bound parameter(s).
+
+    # Returns
+    Draws from a Uniform distribution. The output will have the shape of (n,) + the broadcasted shapes of `lb` and `ub`.
+    """
+    # Cast to Array
+    lb, ub = jnp.asarray(lb), jnp.asarray(ub)
+
+    # Derive shape
+    shape = (n,) + jnp.broadcast_shapes(lb.shape, ub.shape)
+
+    # Construct draws
+    draws = jr.uniform(key, shape, minval = lb, maxval = ub)
+
+    return draws
