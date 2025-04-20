@@ -1,4 +1,4 @@
-from typing import Any, Dict, Self
+from typing import Any, Dict, Generic, Self, TypeVar
 
 import equinox as eqx
 import jax.numpy as jnp
@@ -10,8 +10,8 @@ from jaxtyping import Array, Float, Key, Scalar
 from bayinx.core import Model, Variational
 from bayinx.dists import normal
 
-
-class MeanField(Variational):
+M = TypeVar('M', bound=Model)
+class MeanField(Variational, Generic[M]):
     """
     A fully factorized Gaussian approximation to a posterior distribution.
 
@@ -19,9 +19,9 @@ class MeanField(Variational):
     - `var_params`: The variational parameters for the approximation.
     """
 
-    var_params: Dict[str, Float[Array, "..."]]
+    var_params: Dict[str, Float[Array, "..."]] #todo: just expand to attributes
 
-    def __init__(self, model: Model):
+    def __init__(self, model: M):
         """
         Constructs an unoptimized meanfield posterior approximation.
 

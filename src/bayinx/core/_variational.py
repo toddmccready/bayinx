@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from functools import partial
-from typing import Any, Callable, Self, Tuple
+from typing import Any, Callable, Generic, Self, Tuple, TypeVar
 
 import equinox as eqx
 import jax
@@ -13,8 +13,8 @@ from optax import GradientTransformation, OptState, Schedule
 
 from ._model import Model
 
-
-class Variational(eqx.Module):
+M = TypeVar('M', bound=Model)
+class Variational(eqx.Module, Generic[M]):
     """
     An abstract base class used to define variational methods.
 
@@ -23,8 +23,8 @@ class Variational(eqx.Module):
     - `_constraints`: The static component of a partitioned `Model` used to initialize the `Variational` object.
     """
 
-    _unflatten: Callable[[Array], Model]
-    _constraints: Model
+    _unflatten: Callable[[Array], M]
+    _constraints: M
 
     @abstractmethod
     def filter_spec(self):
@@ -34,7 +34,7 @@ class Variational(eqx.Module):
         pass
 
     @abstractmethod
-    def sample(self, n: int, key: Key) -> Array:
+    def sample(self, n: int, key: Key = jr.PRNGKey(0)) -> Array:
         """
         Sample from the variational distribution.
         """
@@ -72,10 +72,10 @@ class Variational(eqx.Module):
         - `data`: Data used to evaluate the posterior(if needed).
         """
         # Unflatten variational draw
-        model: Model = self._unflatten(draws)
+        model: M = self._unflatten(draws)
 
         # Combine with constraints
-        model: Model = eqx.combine(model, self._constraints)
+        model: M = eqx.combine(model, self._constraints)
 
         # Evaluate posterior density
         return model.eval(data)
@@ -161,8 +161,21 @@ class Variational(eqx.Module):
         # Return optimized variational
         return eqx.combine(dyn, static)
 
+    @eqx.filter_jit
     def posterior_predictive(
-        self, func: Callable[[Self], Array], n: int, key: Key = jr.PRNGKey(0)
+        self, func: Callable[[M], Array], n: int, key: Key = jr.PRNGKey(0)
     ) -> Array:
-        #
-        return jnp.array(1.0)
+        # Sample draws from the variational approximation
+        draws: Array = self.sample(n, key)
+
+        # Evaluate posterior predictive
+        @jax.jit
+        @jax.vmap
+        def evaluate(draw: Array):
+            # Reconstruct model
+            model: M = self._unflatten(draw)
+
+            # Evaluate
+            return func(model)
+
+        return evaluate(draws)

@@ -1,4 +1,4 @@
-from typing import Any, Self, Tuple
+from typing import Any, Generic, Self, Tuple, TypeVar
 
 import equinox as eqx
 import jax.flatten_util as jfu
@@ -9,8 +9,8 @@ from jaxtyping import Array, Key, Scalar
 
 from bayinx.core import Flow, Model, Variational
 
-
-class NormalizingFlow(Variational):
+M = TypeVar('M', bound=Model)
+class NormalizingFlow(Variational, Generic[M]):
     """
     An ordered collection of diffeomorphisms that map a base distribution to a
     normalized approximation of a posterior distribution.
@@ -23,7 +23,7 @@ class NormalizingFlow(Variational):
     flows: list[Flow]
     base: Variational
 
-    def __init__(self, base: Variational, flows: list[Flow], model: Model):
+    def __init__(self, base: Variational, flows: list[Flow], model: M):
         """
         Constructs an unoptimized normalizing flow posterior approximation.
 

@@ -1,29 +1,25 @@
-from typing import Callable
 
 import equinox as eqx
 import jax.numpy as jnp
 import jax.random as jr
 import jax.tree_util as jtu
 from jax.flatten_util import ravel_pytree
-from jaxtyping import Array, Float, Key
+from jaxtyping import Array, Key
 
-from bayinx.core import Model, Variational
+from bayinx.core._variational import M, Variational
 from bayinx.dists import normal
 
 
-class Standard(Variational):
+class Standard(Variational[M]):
     """
     A standard normal approximation to a posterior distribution.
 
     # Attributes
     - `dim`: Dimension of the parameter space.
     """
-
     dim: int
-    _unflatten: Callable[[Float[Array, "..."]], Model]
-    _constraints: Model
 
-    def __init__(self, model: Model):
+    def __init__(self, model: M):
         """
         Constructs a standard normal approximation to a posterior distribution.
 
