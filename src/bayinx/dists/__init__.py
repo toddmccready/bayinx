@@ -1,3 +1,3 @@
-from bayinx.dists import normal, posnormal
+from bayinx.dists import gamma2, normal, posnormal
 
-__all__ = ['normal', 'posnormal']
+__all__ = ['gamma2', 'normal', 'posnormal']

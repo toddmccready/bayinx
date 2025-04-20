@@ -1,3 +1,3 @@
-from bayinx.core import Model as Model
-from bayinx.core import Parameter as Parameter
-from bayinx.core.model import constrain as constrain
+from bayinx.core import Model, Parameter, constrain
+
+__all__ = ['Model', 'Parameter', 'constrain']

@@ -5,8 +5,7 @@ import jax.numpy as jnp
 import jax.tree as jt
 from jaxtyping import PyTree, Scalar, ScalarLike
 
-from bayinx.core.constraint import Constraint
-from bayinx.core.parameter import Parameter
+from bayinx.core import Constraint, Parameter
 
 
 class Lower(Constraint):

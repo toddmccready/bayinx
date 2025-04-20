@@ -7,8 +7,7 @@ import jax.numpy as jnp
 import jax.tree as jt
 from jaxtyping import Scalar
 
-from bayinx.core.constraint import Constraint
-from bayinx.core.parameter import Parameter
+from bayinx.core import Constraint, Parameter
 
 
 def constrain(constraint: Constraint):

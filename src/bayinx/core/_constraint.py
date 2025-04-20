@@ -4,7 +4,7 @@ from typing import Tuple
 import equinox as eqx
 from jaxtyping import Scalar
 
-from bayinx.core.parameter import Parameter
+from bayinx.core._parameter import Parameter
 
 
 class Constraint(eqx.Module):

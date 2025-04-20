@@ -1,3 +1,3 @@
-from . import gamma2, posnormal
+from . import posnormal
 
-__all__ = ['gamma2', 'posnormal']
+__all__ = ['posnormal']
