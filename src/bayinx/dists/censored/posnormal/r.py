@@ -1,5 +1,6 @@
 import jax.numpy as jnp
-from jaxtyping import Array, ArrayLike, Float
+import jax.random as jr
+from jaxtyping import Array, ArrayLike, Float, Key
 
 from bayinx.dists import posnormal
 
@@ -76,3 +77,40 @@ def logprob(
     evals = jnp.where(censored, posnormal.logccdf(x, mu, sigma), evals)
 
     return evals
+
+def sample(
+    n: int,
+    mu: Float[ArrayLike, "..."],
+    sigma: Float[ArrayLike, "..."],
+    censor: Float[ArrayLike, "..."] = jnp.inf,
+    key: Key = jr.PRNGKey(0)
+) -> Float[Array, "..."]:
+    """
+    Sample from a right-censored positive Normal distribution.
+
+    # Parameters
+    - `n`: Number of draws to sample per-parameter.
+    - `mu`: The mean.
+    - `sigma`: The standard deviation.
+    - `censor`: The censor.
+
+    # Returns
+    Draws from a right-censored positive Normal distribution. The output will have the shape of (n,) + the broadcasted shapes of `mu`, `sigma`, and `censor`.
+    """
+    # Cast to Array
+    mu, sigma, censor = (
+        jnp.asarray(mu),
+        jnp.asarray(sigma),
+        jnp.asarray(censor),
+    )
+
+    # Derive shape
+    shape = (n,) + jnp.broadcast_shapes(mu.shape, sigma.shape, censor.shape)
+
+    # Draw from positive normal
+    draws = jr.truncated_normal(key, 0.0, jnp.inf, shape) * sigma + mu
+
+    # Censor values
+    draws = jnp.where(censor <= draws, censor, draws)
+
+    return draws
