@@ -163,7 +163,7 @@ class Variational(eqx.Module, Generic[M]):
 
     @eqx.filter_jit
     def posterior_predictive(
-        self, func: Callable[[M], Array], n: int, key: Key = jr.PRNGKey(0)
+        self, func: Callable[[M], Array], n: int, data: Any = None, key: Key = jr.PRNGKey(0)
     ) -> Array:
         # Sample draws from the variational approximation
         draws: Array = self.sample(n, key)
@@ -171,7 +171,7 @@ class Variational(eqx.Module, Generic[M]):
         # Evaluate posterior predictive
         @jax.jit
         @jax.vmap
-        def evaluate(draw: Array):
+        def evaluate(draw: Array, data: Any = None):
             # Reconstruct model
             model: M = self._unflatten(draw)
 
