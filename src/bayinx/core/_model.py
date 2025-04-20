@@ -12,7 +12,7 @@ from bayinx.core import Constraint, Parameter
 
 def constrain(constraint: Constraint):
     """Defines constraint metadata."""
-    return field(metadata={'constraint': constraint})
+    return field(metadata={"constraint": constraint})
 
 
 class Model(eqx.Module):
@@ -48,11 +48,10 @@ class Model(eqx.Module):
                 filter_spec = eqx.tree_at(
                     lambda model: getattr(model, f.name),
                     filter_spec,
-                    replace=attr.filter_spec
+                    replace=attr.filter_spec,
                 )
 
         return filter_spec
-
 
     @eqx.filter_jit
     def constrain_params(self) -> Tuple[Self, Scalar]:
@@ -70,25 +69,22 @@ class Model(eqx.Module):
             attr = getattr(self, f.name)
 
             # Check if constrained parameter
-            if isinstance(attr, Parameter) and 'constraint' in f.metadata:
+            if isinstance(attr, Parameter) and "constraint" in f.metadata:
                 param = attr
-                constraint = f.metadata['constraint']
+                constraint = f.metadata["constraint"]
 
                 # Apply constraint
                 param, laj = constraint.constrain(param)
 
                 # Update parameters for constrained model
                 constrained = eqx.tree_at(
-                    lambda model: getattr(model, f.name),
-                    constrained,
-                    replace=param
+                    lambda model: getattr(model, f.name), constrained, replace=param
                 )
 
                 # Adjust posterior density
                 target += laj
 
         return constrained, target
-
 
     @eqx.filter_jit
     def transform_params(self) -> Tuple[Self, Scalar]:

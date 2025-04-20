@@ -160,3 +160,9 @@ class Variational(eqx.Module):
 
         # Return optimized variational
         return eqx.combine(dyn, static)
+
+    def posterior_predictive(
+        self, func: Callable[[Self], Array], n: int, key: Key = jr.PRNGKey(0)
+    ) -> Array:
+        #
+        return jnp.array(1.0)

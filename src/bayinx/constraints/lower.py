@@ -38,8 +38,8 @@ class Lower(Constraint):
         dyn_params, static_params = eqx.partition(x, filter_spec)
 
         # Compute density adjustment
-        laj: PyTree = jt.map(jnp.sum, dyn_params) # pyright: ignore
-        laj: Scalar = jt.reduce(lambda a,b: a + b, laj)
+        laj: PyTree = jt.map(jnp.sum, dyn_params)  # pyright: ignore
+        laj: Scalar = jt.reduce(lambda a, b: a + b, laj)
 
         # Compute transformation
         dyn_params = jt.map(lambda v: jnp.exp(v) + self.lb, dyn_params)

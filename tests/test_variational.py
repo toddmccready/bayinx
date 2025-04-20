@@ -86,7 +86,6 @@ def test_flows(benchmark, var_draws):
     vari = vari.fit(20000, var_draws=var_draws)
     benchmark(benchmark_fit)
 
-
     mean = vari.sample(1000).mean(0)
     var = vari.sample(1000).var(0)
     assert (abs(10.0 - mean) < 0.1).all() and (abs(var - 1.0) < 0.1).all()

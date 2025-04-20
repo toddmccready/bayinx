@@ -8,7 +8,7 @@ def prob(
     x: Float[ArrayLike, "..."],
     mu: Float[ArrayLike, "..."],
     sigma: Float[ArrayLike, "..."],
-    censor: Float[ArrayLike, "..."]
+    censor: Float[ArrayLike, "..."],
 ) -> Float[Array, "..."]:
     """
     The mixed probability mass/density function (PMF/PDF) for a right-censored positive Normal distribution.
@@ -23,7 +23,12 @@ def prob(
     The PMF/PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, `sigma`, and `censor`.
     """
     # Cast to Array
-    x, mu, sigma, censor = jnp.array(x), jnp.array(mu), jnp.array(sigma), jnp.array(censor)
+    x, mu, sigma, censor = (
+        jnp.asarray(x),
+        jnp.asarray(mu),
+        jnp.asarray(sigma),
+        jnp.asarray(censor),
+    )
 
     # Construct boolean masks
     uncensored: Array = jnp.logical_and(0.0 < x, x < censor)
@@ -31,7 +36,7 @@ def prob(
 
     # Evaluate probability mass/density function
     evals = jnp.where(uncensored, posnormal.prob(x, mu, sigma), 0.0)
-    evals = jnp.where(censored, posnormal.ccdf(x,mu,sigma), evals)
+    evals = jnp.where(censored, posnormal.ccdf(x, mu, sigma), evals)
 
     return evals
 
@@ -40,7 +45,7 @@ def logprob(
     x: Float[ArrayLike, "..."],
     mu: Float[ArrayLike, "..."],
     sigma: Float[ArrayLike, "..."],
-    censor: Float[ArrayLike, "..."]
+    censor: Float[ArrayLike, "..."],
 ) -> Float[Array, "..."]:
     """
     The log-transformed mixed probability mass/density function (log PMF/PDF) for a right-censored positive Normal distribution.
@@ -55,10 +60,15 @@ def logprob(
     The log PMF/PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, `sigma`, and `censor`.
     """
     # Cast to Array
-    x, mu, sigma, censor = jnp.array(x), jnp.array(mu), jnp.array(sigma), jnp.array(censor)
+    x, mu, sigma, censor = (
+        jnp.asarray(x),
+        jnp.asarray(mu),
+        jnp.asarray(sigma),
+        jnp.asarray(censor),
+    )
 
     # Construct boolean masks for censoring
-    uncensored: Array = jnp.logical_and(jnp.array(0.0) < x, x < censor)
+    uncensored: Array = jnp.logical_and(jnp.asarray(0.0) < x, x < censor)
     censored: Array = x == censor
 
     # Evaluate log probability mass/density function

@@ -4,7 +4,9 @@ import equinox as eqx
 import jax.tree as jt
 from jaxtyping import PyTree
 
-T = TypeVar('T', bound=PyTree)
+T = TypeVar("T", bound=PyTree)
+
+
 class Parameter(eqx.Module, Generic[T]):
     """
     A container for a parameter of a `Model`.
@@ -14,8 +16,8 @@ class Parameter(eqx.Module, Generic[T]):
     # Attributes
     - `vals`: The parameter's value(s).
     """
-    vals: T
 
+    vals: T
 
     def __init__(self, values: T):
         # Insert parameter values

@@ -1,4 +1,5 @@
 import jax.lax as lax
+import jax.numpy as jnp
 from jax.scipy.special import gammaln
 from jaxtyping import Array, ArrayLike, Float
 
@@ -17,6 +18,8 @@ def prob(
     # Returns
     The PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `nu`.
     """
+    # Cast to Array
+    x, mu, nu = jnp.asarray(x), jnp.asarray(mu), jnp.asarray(nu)
 
     return lax.exp(logprob(x, mu, nu))
 
@@ -35,5 +38,12 @@ def logprob(
     # Returns
     The log PDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `nu`.
     """
+    # Cast to Array
+    x, mu, nu = jnp.asarray(x), jnp.asarray(mu), jnp.asarray(nu)
 
-    return - gammaln(nu) + nu * (lax.log(nu) - lax.log(mu)) + (nu - 1.0) * lax.log(x) - (x * nu / mu) # pyright: ignore
+    return (
+        -gammaln(nu)
+        + nu * (lax.log(nu) - lax.log(mu))
+        + (nu - 1.0) * lax.log(x)
+        - (x * nu / mu)
+    )  # pyright: ignore

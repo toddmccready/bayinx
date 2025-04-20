@@ -7,7 +7,9 @@ __PI = 3.141592653589793
 
 
 def prob(
-    x: Float[ArrayLike, "..."], mu: Float[ArrayLike, "..."], sigma: Float[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."],
+    mu: Float[ArrayLike, "..."],
+    sigma: Float[ArrayLike, "..."],
 ) -> Float[Array, "..."]:
     """
     The probability density function (PDF) for a Normal distribution.
@@ -23,13 +25,13 @@ def prob(
     # Cast to Array
     x, mu, sigma = jnp.array(x), jnp.array(mu), jnp.array(sigma)
 
-    return lax.exp(-0.5 * lax.square((x - mu) / sigma)) / (
-        sigma * lax.sqrt(2.0 * __PI)
-    )
+    return lax.exp(-0.5 * lax.square((x - mu) / sigma)) / (sigma * lax.sqrt(2.0 * __PI))
 
 
 def logprob(
-    x: Float[ArrayLike, "..."], mu: Float[ArrayLike, "..."], sigma: Float[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."],
+    mu: Float[ArrayLike, "..."],
+    sigma: Float[ArrayLike, "..."],
 ) -> Float[Array, "..."]:
     """
     The log of the probability density function (log PDF) for a Normal distribution.
@@ -45,13 +47,13 @@ def logprob(
     # Cast to Array
     x, mu, sigma = jnp.array(x), jnp.array(mu), jnp.array(sigma)
 
-    return -lax.log(sigma * lax.sqrt(2.0 * __PI)) - 0.5 * lax.square(
-        (x - mu) / sigma
-    )
+    return -lax.log(sigma * lax.sqrt(2.0 * __PI)) - 0.5 * lax.square((x - mu) / sigma)
 
 
 def uprob(
-    x: Float[ArrayLike, "..."], mu: Float[ArrayLike, "..."], sigma: Float[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."],
+    mu: Float[ArrayLike, "..."],
+    sigma: Float[ArrayLike, "..."],
 ) -> Float[Array, "..."]:
     """
     The unnormalized probability density function (uPDF) for a Normal distribution.
@@ -71,7 +73,9 @@ def uprob(
 
 
 def ulogprob(
-    x: Float[ArrayLike, "..."], mu: Float[ArrayLike, "..."], sigma: Float[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."],
+    mu: Float[ArrayLike, "..."],
+    sigma: Float[ArrayLike, "..."],
 ) -> Float[Array, "..."]:
     """
     The log of the unnormalized probability density function (log uPDF) for a Normal distribution.
@@ -89,32 +93,44 @@ def ulogprob(
 
     return -lax.log(sigma) - 0.5 * lax.square((x - mu) / sigma)
 
+
 def cdf(
-    x: Float[ArrayLike, "..."], mu: Float[ArrayLike, "..."], sigma: Float[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."],
+    mu: Float[ArrayLike, "..."],
+    sigma: Float[ArrayLike, "..."],
 ) -> Float[Array, "..."]:
     # Cast to Array
     x, mu, sigma = jnp.array(x), jnp.array(mu), jnp.array(sigma)
 
     return jss.ndtr((x - mu) / sigma)
 
+
 def logcdf(
-    x: Float[ArrayLike, "..."], mu: Float[ArrayLike, "..."], sigma: Float[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."],
+    mu: Float[ArrayLike, "..."],
+    sigma: Float[ArrayLike, "..."],
 ) -> Float[Array, "..."]:
     # Cast to Array
     x, mu, sigma = jnp.array(x), jnp.array(mu), jnp.array(sigma)
 
     return jss.log_ndtr((x - mu) / sigma)
 
+
 def ccdf(
-    x: Float[ArrayLike, "..."], mu: Float[ArrayLike, "..."], sigma: Float[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."],
+    mu: Float[ArrayLike, "..."],
+    sigma: Float[ArrayLike, "..."],
 ) -> Float[Array, "..."]:
     # Cast to Array
     x, mu, sigma = jnp.array(x), jnp.array(mu), jnp.array(sigma)
 
     return jss.ndtr((mu - x) / sigma)
 
+
 def logccdf(
-    x: Float[ArrayLike, "..."], mu: Float[ArrayLike, "..."], sigma: Float[ArrayLike, "..."]
+    x: Float[ArrayLike, "..."],
+    mu: Float[ArrayLike, "..."],
+    sigma: Float[ArrayLike, "..."],
 ) -> Float[Array, "..."]:
     # Cast to Array
     x, mu, sigma = jnp.array(x), jnp.array(mu), jnp.array(sigma)

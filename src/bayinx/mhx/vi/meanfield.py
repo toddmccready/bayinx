@@ -55,7 +55,6 @@ class MeanField(Variational):
 
         return filter_spec
 
-
     @eqx.filter_jit
     def sample(self, n: int, key: Key = jr.PRNGKey(0)) -> Array:
         # Sample variational draws

@@ -1,3 +1,3 @@
 from . import r
 
-__all__ = ['r']
+__all__ = ["r"]
