@@ -1,1 +1,3 @@
-from bayinx.constraints.lower import Lower as Lower
+from bayinx.constraints.lower import Lower
+
+__all__ = ['Lower']
