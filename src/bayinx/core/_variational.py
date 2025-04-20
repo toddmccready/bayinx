@@ -171,11 +171,11 @@ class Variational(eqx.Module, Generic[M]):
         # Evaluate posterior predictive
         @jax.jit
         @jax.vmap
-        def evaluate(draw: Array, data: Any = None):
+        def evaluate(draw: Array):
             # Reconstruct model
             model: M = self._unflatten(draw)
 
             # Evaluate
             return func(model, data)
 
-        return evaluate(draws, data)
+        return evaluate(draws)
