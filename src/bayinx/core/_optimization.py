@@ -1,4 +1,4 @@
-from typing import Any, Tuple
+from typing import Any, Tuple, TypeVar
 
 import equinox as eqx
 import jax.lax as lax
@@ -9,16 +9,16 @@ from optax import GradientTransformation, OptState, Schedule
 
 from ._model import Model
 
-
+M = TypeVar("M", bound=Model)
 @eqx.filter_jit
 def optimize_model(
-    model: Model,
+    model: M,
     max_iters: int,
     data: Any = None,
     learning_rate: float = 1,
     weight_decay: float = 0.0,
     tolerance: float = 1e-4,
-) -> Model:
+) -> M:
     """
     Optimize the dynamic parameters of the model.
 
@@ -35,9 +35,9 @@ def optimize_model(
     # Derive gradient for posterior
     @eqx.filter_jit
     @eqx.filter_grad
-    def eval_grad(dyn: Model):
+    def eval_grad(dyn: M):
         # Reconstruct model
-        model: Model = eqx.combine(dyn, static)
+        model: M = eqx.combine(dyn, static)
 
         # Evaluate posterior
         return model.eval(data)
