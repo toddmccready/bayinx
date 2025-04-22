@@ -20,7 +20,7 @@ def optimize_model(
     tolerance: float = 1e-4,
 ) -> M:
     """
-    Optimize the dynamic parameters of the model.
+    Optimize the parameters of the model.
 
     # Parameters
     - `max_iters`: Maximum number of iterations for the optimization loop.

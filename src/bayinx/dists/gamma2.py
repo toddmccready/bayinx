@@ -46,4 +46,4 @@ def logprob(
         + nu * (lax.log(nu) - lax.log(mu))
         + (nu - 1.0) * lax.log(x)
         - (x * nu / mu)
-    )  # pyright: ignore
+    )
