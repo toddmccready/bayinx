@@ -40,7 +40,7 @@ class MeanField(Variational, Generic[M]):
         # Initialize variational parameters
         self.var_params = {
             "mean": params,
-            "log_std": jnp.full(params.size, init_std, params.dtype),
+            "log_std": jnp.full(params.size, init_log_std, params.dtype),
         }
 
     @property
