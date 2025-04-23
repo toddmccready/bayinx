@@ -23,12 +23,13 @@ class MeanField(Variational, Generic[M]):
 
     var_params: Dict[str, Float[Array, "..."]]  # todo: just expand to attributes
 
-    def __init__(self, model: M):
+    def __init__(self, model: M, init_log_std: float = 0.0):
         """
         Constructs an unoptimized meanfield posterior approximation.
 
         # Parameters
         - `model`: A probabilistic `Model` object.
+        - `init_log_std`: The initial log-transformed standard deviation of the Gaussian approximation.
         """
         # Partition model
         params, self._constraints = eqx.partition(model, model.filter_spec)
@@ -39,7 +40,7 @@ class MeanField(Variational, Generic[M]):
         # Initialize variational parameters
         self.var_params = {
             "mean": params,
-            "log_std": jnp.zeros(params.size, dtype=params.dtype),
+            "log_std": jnp.full(params.size, init_std, params.dtype),
         }
 
     @property
