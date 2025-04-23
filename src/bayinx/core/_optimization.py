@@ -1,4 +1,4 @@
-from typing import Any, Tuple, TypeVar
+from typing import Any, Callable, Tuple, TypeVar
 
 import equinox as eqx
 import jax.lax as lax
@@ -33,14 +33,13 @@ def optimize_model(
     dyn, static = eqx.partition(model, model.filter_spec)
 
     # Derive gradient for posterior
-    @eqx.filter_jit
-    @eqx.filter_grad
-    def eval_grad(dyn: M):
+    def eval(dyn: M) -> Scalar:
         # Reconstruct model
         model: M = eqx.combine(dyn, static)
 
         # Evaluate posterior
         return model.eval(data)
+    eval_grad: Callable[[M], M] = eqx.filter_jit(eqx.filter_grad(eval))
 
     # Construct scheduler
     schedule: Schedule = opx.warmup_cosine_decay_schedule(
@@ -71,7 +70,7 @@ def optimize_model(
         i = i + 1
 
         # Evaluate gradient of posterior
-        updates = eval_grad(dyn)
+        updates: PyTree = eval_grad(dyn)
 
         # Compute updates
         updates, opt_state = optim.update(

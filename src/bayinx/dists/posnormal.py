@@ -139,9 +139,6 @@ def cdf(
 
     # Returns
     The CDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `sigma`.
-
-    # Notes
-    Not numerically stable for small `x`.
     """
     # Cast to Array
     x, mu, sigma = jnp.asarray(x), jnp.asarray(mu), jnp.asarray(sigma)
@@ -160,7 +157,6 @@ def cdf(
     return evals
 
 
-# TODO: make numerically stable
 def logcdf(
     x: Float[ArrayLike, "..."],
     mu: Float[ArrayLike, "..."],
@@ -176,9 +172,6 @@ def logcdf(
 
     # Returns
     The log CDF evaluated at `x`. The output will have the broadcasted shapes of `x`, `mu`, and `sigma`.
-
-    # Notes
-    Not numerically stable for small `x`.
     """
     # Cast to Array
     x, mu, sigma = jnp.asarray(x), jnp.asarray(mu), jnp.asarray(sigma)
