@@ -176,7 +176,7 @@ class Variational(eqx.Module, Generic[M]):
         key: Key = jr.PRNGKey(0),
     ) -> Array:
         # Sample a single draw to evaluate shape of output
-        draw: Array = self.sample(1, key)
+        draw: Array = self.sample(1, key)[0]
         output: Array = func(self._unflatten(draw), data)
 
         # Allocate space for results

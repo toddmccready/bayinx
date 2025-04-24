@@ -10,6 +10,8 @@ from bayinx.mhx.vi import Standard
 
 class NormalDist(Model):
     x: Parameter[Array]
+    other: str = "hi"
+    other2: float = 10.0
 
     def __init__(self):
         self.x = Parameter(jnp.array([0.0, 0.0]))
