@@ -33,9 +33,11 @@ def test_predictive():
 
     # Posterior predictive function
     def extract_first_x(model: NormalDist, data: Any = None) -> Array:
-        return model.x()[0]
+        return model.x()
 
     # Sample from posterior
     first_x_samples: Array = vari.posterior_predictive(extract_first_x, 1000)
 
     assert abs(first_x_samples.mean()) < 0.1 and abs(first_x_samples.var() - 1.0) < 0.1
+
+# todo: make test for data argument

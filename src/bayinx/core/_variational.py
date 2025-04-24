@@ -175,17 +175,33 @@ class Variational(eqx.Module, Generic[M]):
         data: Any = None,
         key: Key = jr.PRNGKey(0),
     ) -> Array:
-        # Sample draws from the variational approximation
-        draws: Array = self.sample(n, key)
+        # Sample a single draw to evaluate shape of output
+        draw: Array = self.sample(1, key)
+        output: Array = func(self._unflatten(draw), data)
 
-        # Evaluate posterior predictive
-        @jax.jit
-        @jax.vmap
-        def evaluate(draw: Array):
+        # Allocate space for results
+        results: Array = jnp.zeros((n,) + output.shape, dtype=output.dtype)
+
+        @eqx.filter_jit
+        def body_fun(i: int, state: Tuple[Key, Array]) -> Tuple[Key, Array]:
+            # Unpack state
+            key, results = state
+
+            # Update PRNG key
+            next, key = jr.split(key)
+
+            # Draw from variational
+            draw: Array = self.sample(1, key)
+
             # Reconstruct model
             model: M = self._unflatten(draw)
 
-            # Evaluate
-            return func(model, data)
+            # Update results with output
+            results = results.at[i].set(func(model, data))
 
-        return evaluate(draws)
+            return next, results
+
+        # Evaluate draws
+        results: Array = jax.lax.fori_loop(0, n, body_fun, (key, results))[1]
+
+        return results
