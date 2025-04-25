@@ -198,7 +198,7 @@ class Variational(eqx.Module, Generic[M]):
             next, key = jr.split(key)
 
             # Draw from variational
-            draw: Array = self.sample(1, key)
+            draw: Array = self.sample(1, key)[0]
 
             # Reconstruct model
             model: M = self.reconstruct_model(draw)
