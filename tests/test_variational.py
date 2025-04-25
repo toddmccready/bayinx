@@ -43,8 +43,8 @@ def test_meanfield(benchmark, var_draws):
     benchmark(benchmark_fit)
 
     # Assert parameters are roughly correct
-    assert all(abs(10.0 - vari.var_params["mean"]) < 0.1) and all(
-        abs(0.0 - vari.var_params["log_std"]) < 0.1
+    assert all(abs(10.0 - vari.mean) < 0.1) and all(
+        abs(0.0 - vari.log_std) < 0.1
     )
 
 

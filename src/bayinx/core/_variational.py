@@ -64,6 +64,16 @@ class Variational(eqx.Module, Generic[M]):
         pass
 
     @eqx.filter_jit
+    def reconstruct_model(self, draw: Array) -> M:
+        # Unflatten variational draw
+        model: M = self._unflatten(draw)
+
+        # Combine with constraints
+        model: M = eqx.combine(model, self._constraints)
+
+        return model
+
+    @eqx.filter_jit
     @partial(jax.vmap, in_axes=(None, 0, None))
     def eval_model(self, draws: Array, data: Any = None) -> Array:
         """
@@ -74,10 +84,7 @@ class Variational(eqx.Module, Generic[M]):
         - `data`: Data used to evaluate the posterior(if needed).
         """
         # Unflatten variational draw
-        model: M = self._unflatten(draws)
-
-        # Combine with constraints
-        model: M = eqx.combine(model, self._constraints)
+        model: M = self.reconstruct_model(draws)
 
         # Evaluate posterior density
         return model.eval(data)
@@ -177,7 +184,7 @@ class Variational(eqx.Module, Generic[M]):
     ) -> Array:
         # Sample a single draw to evaluate shape of output
         draw: Array = self.sample(1, key)[0]
-        output: Array = func(self._unflatten(draw), data)
+        output: Array = func(self.reconstruct_model(draw), data)
 
         # Allocate space for results
         results: Array = jnp.zeros((n,) + output.shape, dtype=output.dtype)
@@ -194,7 +201,7 @@ class Variational(eqx.Module, Generic[M]):
             draw: Array = self.sample(1, key)
 
             # Reconstruct model
-            model: M = self._unflatten(draw)
+            model: M = self.reconstruct_model(draw)
 
             # Update results with output
             results = results.at[i].set(func(model, data))

@@ -1,11 +1,11 @@
-from typing import Any, Dict, Generic, Self, TypeVar
+from typing import Any, Generic, Self, TypeVar
 
 import equinox as eqx
 import jax.numpy as jnp
 import jax.random as jr
 import jax.tree_util as jtu
 from jax.flatten_util import ravel_pytree
-from jaxtyping import Array, Float, Key, Scalar
+from jaxtyping import Array, Key, Scalar
 
 from bayinx.core import Model, Variational
 from bayinx.dists import normal
@@ -18,12 +18,14 @@ class MeanField(Variational, Generic[M]):
     A fully factorized Gaussian approximation to a posterior distribution.
 
     # Attributes
-    - `var_params`: The variational parameters for the approximation.
+    - `mean`: The mean of the unconstrained approximation.
+    - `log_std` The log-transformed standard deviation of the unconstrained approximation.
     """
 
-    var_params: Dict[str, Float[Array, "..."]]  # todo: just expand to attributes
+    mean: Array
+    log_std: Array
 
-    def __init__(self, model: M, init_log_std: float = 0.0):
+    def __init__(self, model: M, init_log_std: float = -5.0):
         """
         Constructs an unoptimized meanfield posterior approximation.
 
@@ -38,10 +40,8 @@ class MeanField(Variational, Generic[M]):
         params, self._unflatten = ravel_pytree(params)
 
         # Initialize variational parameters
-        self.var_params = {
-            "mean": params,
-            "log_std": jnp.full(params.size, init_log_std, params.dtype),
-        }
+        self.mean = params
+        self.log_std = jnp.full(params.size, init_log_std, params.dtype)
 
     @property
     @eqx.filter_jit
@@ -51,7 +51,12 @@ class MeanField(Variational, Generic[M]):
 
         # Specify variational parameters
         filter_spec = eqx.tree_at(
-            lambda mf: mf.var_params,
+            lambda mf: mf.mean,
+            filter_spec,
+            replace=True,
+        )
+        filter_spec = eqx.tree_at(
+            lambda mf: mf.log_std,
             filter_spec,
             replace=True,
         )
@@ -62,9 +67,9 @@ class MeanField(Variational, Generic[M]):
     def sample(self, n: int, key: Key = jr.PRNGKey(0)) -> Array:
         # Sample variational draws
         draws: Array = (
-            jr.normal(key=key, shape=(n, self.var_params["mean"].size))
-            * jnp.exp(self.var_params["log_std"])
-            + self.var_params["mean"]
+            jr.normal(key=key, shape=(n, self.mean.size))
+            * jnp.exp(self.log_std)
+            + self.mean
         )
 
         return draws
@@ -73,8 +78,8 @@ class MeanField(Variational, Generic[M]):
     def eval(self, draws: Array) -> Array:
         return normal.logprob(
             x=draws,
-            mu=self.var_params["mean"],
-            sigma=jnp.exp(self.var_params["log_std"]),
+            mu=self.mean,
+            sigma=jnp.exp(self.log_std),
         ).sum(axis=1)
 
     @eqx.filter_jit
