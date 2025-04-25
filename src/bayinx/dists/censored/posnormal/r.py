@@ -113,4 +113,7 @@ def sample(
     draws = jr.uniform(key, shape)
     draws = mu + sigma * ndtri(normal.cdf(-mu/sigma, 0.0, 1.0) + draws * normal.cdf(mu/sigma, 0.0, 1.0))
 
+    # Censor draws
+    draws.at[censor <= draws].set(censor)
+
     return draws

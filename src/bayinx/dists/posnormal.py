@@ -1,5 +1,7 @@
 import jax.numpy as jnp
-from jaxtyping import Array, ArrayLike, Float
+import jax.random as jr
+from jax.scipy.special import ndtri
+from jaxtyping import Array, ArrayLike, Float, Key
 
 from bayinx.dists import normal
 
@@ -251,3 +253,36 @@ def logccdf(
     evals = jnp.where(non_negative, A - B, jnp.asarray(0.0))
 
     return evals
+
+
+def sample(
+    n: int,
+    mu: Float[ArrayLike, "..."],
+    sigma: Float[ArrayLike, "..."],
+    key: Key = jr.PRNGKey(0),
+) -> Float[Array, "..."]:
+    """
+    Sample from a positive Normal distribution.
+
+    # Parameters
+    - `n`: Number of draws to sample per-parameter.
+    - `mu`: The mean.
+    - `sigma`: The standard deviation.
+
+    # Returns
+    Draws from a positive Normal distribution. The output will have the shape of (n,) + the broadcasted shapes of `mu` and `sigma`.
+    """
+    # Cast to Array
+    mu, sigma = (
+        jnp.asarray(mu),
+        jnp.asarray(sigma),
+    )
+
+    # Derive shape
+    shape = (n,) + jnp.broadcast_shapes(mu.shape, sigma.shape)
+
+    # Construct draws
+    draws = jr.uniform(key, shape)
+    draws = mu + sigma * ndtri(normal.cdf(-mu/sigma, 0.0, 1.0) + draws * normal.cdf(mu/sigma, 0.0, 1.0))
+
+    return draws
