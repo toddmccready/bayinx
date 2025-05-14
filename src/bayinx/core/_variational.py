@@ -14,19 +14,17 @@ from optax import GradientTransformation, OptState, Schedule
 from ._model import Model
 
 M = TypeVar("M", bound=Model)
-
-
 class Variational(eqx.Module, Generic[M]):
     """
     An abstract base class used to define variational methods.
 
     # Attributes
     - `_unflatten`: A function to transform draws from the variational distribution back to a `Model`.
-    - `_constraints`: The static component of a partitioned `Model` used to initialize the `Variational` object.
+    - `_static`: The static component of a partitioned `Model` used to initialize the `Variational` object.
     """
 
     _unflatten: Callable[[Array], M]
-    _constraints: M
+    _static: M
 
     @abstractmethod
     def filter_spec(self):
@@ -69,7 +67,7 @@ class Variational(eqx.Module, Generic[M]):
         model: M = self._unflatten(draw)
 
         # Combine with constraints
-        model: M = eqx.combine(model, self._constraints)
+        model: M = eqx.combine(model, self._static)
 
         return model
 

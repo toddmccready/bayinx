@@ -31,11 +31,11 @@ class NormalizingFlow(Variational, Generic[M]):
 
         # Parameters
         - `base`: The base variational distribution.
-        - `flows`: A list of diffeomorphisms.
+        - `flows`: A list of flows.
         - `model`: A probabilistic `Model` object.
         """
         # Partition model
-        params, self._constraints = eqx.partition(model, model.filter_spec)
+        params, self._static = eqx.partition(model, model.filter_spec)
 
         # Flatten params component
         _, self._unflatten = jfu.ravel_pytree(params)
@@ -78,7 +78,7 @@ class NormalizingFlow(Variational, Generic[M]):
         variational_evals: Array = self.base.eval(draws)
 
         for map in self.flows:
-            # Compute adjustment
+            # Apply transformation
             draws, laj = map.adjust_density(draws)
 
             # Adjust variational density
@@ -103,7 +103,7 @@ class NormalizingFlow(Variational, Generic[M]):
         variational_evals: Array = self.base.eval(draws)
 
         for map in self.flows:
-            # Compute adjustment
+            # Apply transformation
             draws, laj = map.adjust_density(draws)
 
             # Adjust variational density

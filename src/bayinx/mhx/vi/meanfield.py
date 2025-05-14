@@ -34,7 +34,7 @@ class MeanField(Variational, Generic[M]):
         - `init_log_std`: The initial log-transformed standard deviation of the Gaussian approximation.
         """
         # Partition model
-        params, self._constraints = eqx.partition(model, model.filter_spec)
+        params, self._static = eqx.partition(model, model.filter_spec)
 
         # Flatten params component
         params, self._unflatten = ravel_pytree(params)
@@ -108,10 +108,9 @@ class MeanField(Variational, Generic[M]):
     def elbo_grad(self, n: int, key: Key, data: Any = None) -> Self:
         dyn, static = eqx.partition(self, self.filter_spec)
 
-        @eqx.filter_grad
         @eqx.filter_jit
+        @eqx.filter_grad
         def elbo_grad(dyn: Self, n: int, key: Key, data: Any = None):
-            # Combine
             vari = eqx.combine(dyn, static)
 
             # Sample draws from variational distribution

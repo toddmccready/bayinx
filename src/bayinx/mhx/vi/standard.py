@@ -27,7 +27,7 @@ class Standard(Variational[M]):
         - `model`: A probabilistic `Model` object.
         """
         # Partition model
-        params, self._constraints = eqx.partition(model, model.filter_spec)
+        params, self._static = eqx.partition(model, model.filter_spec)
 
         # Flatten params component
         params, self._unflatten = ravel_pytree(params)

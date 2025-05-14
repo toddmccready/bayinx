@@ -11,9 +11,9 @@ from ._constraint import Constraint
 from ._parameter import Parameter
 
 
-def constrain(constraint: Constraint):
-    """Defines constraint metadata."""
-    return field(metadata={"constraint": constraint})
+def define(shape: tuple[int, ...], constraint: Constraint):
+    """Defines a parameter(shape, domain, etc)."""
+    return field(metadata={"shape": shape, "constraint": constraint})
 
 
 class Model(eqx.Module):
@@ -22,7 +22,7 @@ class Model(eqx.Module):
 
     Annotate parameter attributes with `Parameter`.
 
-    Include constraints by setting them equal to `constrain(Constraint)`.
+    Include constraints by setting them equal to `define(Constraint)`.
     """
 
     @abstractmethod
@@ -31,7 +31,6 @@ class Model(eqx.Module):
 
     # Default filter specification
     @property
-    @eqx.filter_jit
     def filter_spec(self) -> Self:
         """
         Generates a filter specification to subset relevant parameters for the model.
@@ -70,7 +69,7 @@ class Model(eqx.Module):
             attr = getattr(self, f.name)
 
             # Check if constrained parameter
-            if isinstance(attr, Parameter) and "constraint" in f.metadata:
+            if isinstance(attr, Parameter) and ("constraint" in f.metadata):
                 param = attr
                 constraint = f.metadata["constraint"]
 
