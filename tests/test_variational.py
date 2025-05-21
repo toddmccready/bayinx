@@ -21,7 +21,7 @@ class NormalDist(Model):
         self, target = self.constrain_params()
 
         # Evaluate x ~ Normal(10.0, 1.0)
-        target += jnp.sum(normal.logprob(self.x(), jnp.array(10.0), jnp.array(1.0)))
+        target += normal.logprob(self.x(), jnp.array(10.0), jnp.array(1.0)).sum()
 
         return target
 

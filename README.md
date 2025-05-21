@@ -8,7 +8,7 @@ In the short-term, I'm going to focus on:
 3) Figuring out how to design the library to automatically recognize what kind of machinery is amenable to a given probabilistic model.
 
 In the long-term, I'm going to focus on:
-1) How to get `Stan`-like declarative syntax in Python with minimal syntactic overhead(to get as close as possible to statements like `X ~ Normal(mu, 1)`), while also allowing users to work with `target` directly when needed(same as `Stan` does).
+1) How to get `Stan`-like declarative syntax in Python with minimal syntactic overhead(to get as close as possible to statements like `X ~ Normal(mu, 1)`), while also allowing users to work with `target` directly when needed(same as `Stan` does). Maybe overload `<<` operator.
 2) How to make working with the posterior as easy as possible.
     - That's a vague goal but practically it means how to easily evaluate statements like $P(\theta \in [-1, 1] | \mathcal{D}, \mathcal{M})$, or set up contrasts and evaluate $P(\mu_1 - \mu_2 > 0 | \mathcal{D}, \mathcal{M})$, or simulate the posterior predictive to generate plots, etc.
 
@@ -20,6 +20,8 @@ Additionally, when I get around to it I'd like the package documentation to also
 # TODO
 - Learn more MCMC and figure out a way to abstract over a `Parameter` type(and then offer a MH proposal step and a variational for that parameter).
 - Implement those `Parameter` types and make them like `Continuous`, `Integer`, `Tree`(for BART), etc.
+- Modify the `__new__` method for `Model` so that parameters are automatically generated with param_field annotated dimensions.
+- Once that is all done, make all attributes properties(with getters/maybe setters) to more easily grab the underlying variable.
 - For variational methods offer a way for users to have custom stopping conditions(perhaps stop if a single parameter has converged, etc).
 - Learn how to combine MCMC for models of multiple `Parameter` types.
 - Find some way to discern between models with all floating-point parameters and weirder models with integer parameters. Useful for restricting variational methods like `MeanField` to `Model`s that only have floating-point parameters.
