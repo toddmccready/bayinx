@@ -18,16 +18,15 @@ Additionally, when I get around to it I'd like the package documentation to also
 
 
 # TODO
-- Learn more MCMC and figure out a way to abstract over a `Parameter` type(and then offer a MH proposal step and a variational for that parameter).
+- Learn more MCMC and figure out a way to abstract over a `Parameter` type(and then offer a MH proposal step and a variational for that parameter). This is probably a refactor.
 - Implement those `Parameter` types and make them like `Continuous`, `Integer`, `Tree`(for BART), etc.
 - Modify the `__new__` method for `Model` so that parameters are automatically generated with param_field annotated dimensions.
 - Once that is all done, make all attributes properties(with getters/maybe setters) to more easily grab the underlying variable.
 - For variational methods offer a way for users to have custom stopping conditions(perhaps stop if a single parameter has converged, etc).
 - Learn how to combine MCMC for models of multiple `Parameter` types.
-- Find some way to discern between models with all floating-point parameters and weirder models with integer parameters. Useful for restricting variational methods like `MeanField` to `Model`s that only have floating-point parameters.
 - Look into adaptively tuning ADAM hyperparameters for VI.
 - Control variates for meanfield VI? Look at https://proceedings.mlr.press/v33/ranganath14.html more closely.
 - Low-rank affine flow?
 - https://arxiv.org/pdf/1803.05649 implement sylvester flows.
-- Learn how to generate documentation lol.
+- Learn how to generate documentation.
 - Figure out how to make transform_pars for flows such that there is no performance loss. Noticing some weird behaviour when adding constraints.
