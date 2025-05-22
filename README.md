@@ -18,6 +18,7 @@ Additionally, when I get around to it I'd like the package documentation to also
 
 
 # TODO
+- Use context manager like `pymc` does to define models, look into `inspect` module to avoid the double naming.
 - Learn more MCMC and figure out a way to abstract over a `Parameter` type(and then offer a MH proposal step and a variational for that parameter). This is probably a refactor.
 - Implement those `Parameter` types and make them like `Continuous`, `Integer`, `Tree`(for BART), etc.
 - Modify the `__new__` method for `Model` so that parameters are automatically generated with param_field annotated dimensions.
