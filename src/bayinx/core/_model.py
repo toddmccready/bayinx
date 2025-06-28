@@ -51,8 +51,6 @@ class Model(eqx.Module):
             elif "init" in f.metadata:
                 # Slot in given 'init' object
                 setattr(obj, f.name, Parameter(f.metadata["init"]))
-            else:
-                raise RuntimeError("neither 'shape' or 'init' found in field metadata.")
 
         return obj
 

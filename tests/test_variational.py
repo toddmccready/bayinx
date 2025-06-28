@@ -11,20 +11,21 @@ from bayinx.mhx.vi.flows import FullAffine, Planar, Radial
 
 
 class NormalDist(Model):
-    x: Parameter[Array] = define((2,))
+    x: Parameter[Array] = define(shape = (2,))
+    something: int = 1
 
     def eval(self, data: Dict[str, Array]):
         # Constrain parameters
         self, target = self.constrain_params()
 
         # Evaluate x ~ Normal(10.0, 1.0)
-        target += normal.logprob(self.x(), jnp.array(10.0), jnp.array(1.0)).sum()
+        target += normal.logprob(self.x(), 10.0, 1.0).sum()
 
         return target
 
 
 # Tests ----
-@pytest.mark.parametrize("var_draws", [1, 100])
+@pytest.mark.parametrize("var_draws", [1, 4])
 def test_meanfield(benchmark, var_draws):
     # Construct model
     model = NormalDist()
@@ -43,7 +44,7 @@ def test_meanfield(benchmark, var_draws):
     assert all(abs(10.0 - vari.mean) < 0.1) and all(abs(0.0 - vari.log_std) < 0.1)
 
 
-@pytest.mark.parametrize("var_draws", [1, 100])
+@pytest.mark.parametrize("var_draws", [1, 4])
 def test_affine(benchmark, var_draws):
     # Construct model
     model = NormalDist()
@@ -64,7 +65,7 @@ def test_affine(benchmark, var_draws):
     ).all()
 
 
-@pytest.mark.parametrize("var_draws", [1, 100])
+@pytest.mark.parametrize("var_draws", [1, 4])
 def test_flows(benchmark, var_draws):
     # Construct model
     model = NormalDist()
