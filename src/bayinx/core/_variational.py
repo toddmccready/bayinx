@@ -14,6 +14,8 @@ from optax import GradientTransformation, OptState, Schedule
 from ._model import Model
 
 M = TypeVar("M", bound=Model)
+
+
 class Variational(eqx.Module, Generic[M]):
     """
     An abstract base class used to define variational methods.
@@ -87,7 +89,6 @@ class Variational(eqx.Module, Generic[M]):
         # Evaluate posterior density
         return model.eval(data)
 
-    # TODO: get rid of this and put it all in each vari's methods, forgot abt discrete parameters :V
     @eqx.filter_jit
     def fit(
         self,
@@ -114,11 +115,9 @@ class Variational(eqx.Module, Generic[M]):
         dyn, static = eqx.partition(self, self.filter_spec)
 
         # Construct scheduler
-        schedule: Schedule = opx.warmup_cosine_decay_schedule(
-            init_value=1e-16,
-            peak_value=learning_rate,
-            warmup_steps=int(max_iters / 10),
-            decay_steps=max_iters - int(max_iters / 10),
+        schedule: Schedule = opx.cosine_decay_schedule(
+            init_value=learning_rate,
+            decay_steps=max_iters,
         )
 
         # Initialize optimizer
@@ -173,7 +172,7 @@ class Variational(eqx.Module, Generic[M]):
         return eqx.combine(dyn, static)
 
     @eqx.filter_jit
-    def posterior_predictive(
+    def _posterior_predictive(
         self,
         func: Callable[[M, Any], Array],
         n: int,

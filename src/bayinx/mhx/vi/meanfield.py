@@ -44,7 +44,6 @@ class MeanField(Variational, Generic[M]):
         self.log_std = jnp.full(params.size, init_log_std, params.dtype)
 
     @property
-    @eqx.filter_jit
     def filter_spec(self):
         # Generate empty specification
         filter_spec = jtu.tree_map(lambda _: False, self)
@@ -67,8 +66,7 @@ class MeanField(Variational, Generic[M]):
     def sample(self, n: int, key: Key = jr.PRNGKey(0)) -> Array:
         # Sample variational draws
         draws: Array = (
-            jr.normal(key=key, shape=(n, self.mean.size))
-            * jnp.exp(self.log_std)
+            jr.normal(key=key, shape=(n, self.mean.size)) * jnp.exp(self.log_std)
             + self.mean
         )
 

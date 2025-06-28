@@ -83,8 +83,12 @@ def ulogprob(
 
     return jnp.zeros(jnp.broadcast_shapes(x.shape, lb.shape, ub.shape))
 
+
 def sample(
-    n: int, lb: Float[ArrayLike, "..."], ub: Float[ArrayLike, "..."], key: Key = jr.PRNGKey(0),
+    n: int,
+    lb: Float[ArrayLike, "..."],
+    ub: Float[ArrayLike, "..."],
+    key: Key = jr.PRNGKey(0),
 ) -> Float[Array, "..."]:
     """
     Sample from a Uniform distribution.
@@ -104,6 +108,6 @@ def sample(
     shape = (n,) + jnp.broadcast_shapes(lb.shape, ub.shape)
 
     # Construct draws
-    draws = jr.uniform(key, shape, minval = lb, maxval = ub)
+    draws = jr.uniform(key, shape, minval=lb, maxval=ub)
 
     return draws

@@ -37,7 +37,6 @@ class Flow(eqx.Module):
 
     # Default filter specification
     @property
-    @eqx.filter_jit
     def filter_spec(self):
         """
         Generates a filter specification to subset relevant parameters for the flow.
@@ -54,7 +53,6 @@ class Flow(eqx.Module):
 
         return filter_spec
 
-    @eqx.filter_jit
     def constrain_params(self: Self):
         """
         Constrain `params` to the appropriate domain.
@@ -69,7 +67,6 @@ class Flow(eqx.Module):
 
         return t_params
 
-    @eqx.filter_jit
     def transform_params(self: Self) -> Dict[str, Array]:
         """
         Apply a custom transformation to `params` if needed.

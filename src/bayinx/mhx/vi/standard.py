@@ -35,6 +35,7 @@ class Standard(Variational[M]):
         # Store dimension of parameter space
         self.dim = jnp.size(params)
 
+
     @eqx.filter_jit
     def sample(self, n: int, key: Key = jr.PRNGKey(0)) -> Array:
         # Sample variational draws

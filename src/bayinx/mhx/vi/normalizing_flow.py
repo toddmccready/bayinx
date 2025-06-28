@@ -10,6 +10,8 @@ from jaxtyping import Array, Key, Scalar
 from bayinx.core import Flow, Model, Variational
 
 M = TypeVar("M", bound=Model)
+
+
 class NormalizingFlow(Variational, Generic[M]):
     """
     An ordered collection of diffeomorphisms that map a base distribution to a
@@ -42,7 +44,6 @@ class NormalizingFlow(Variational, Generic[M]):
         self.flows = flows
 
     @property
-    @eqx.filter_jit
     def filter_spec(self):
         # Generate empty specification
         filter_spec = jtu.tree_map(lambda _: False, self)

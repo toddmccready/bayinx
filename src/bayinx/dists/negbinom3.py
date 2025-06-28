@@ -4,6 +4,7 @@ from jaxtyping import Array, ArrayLike, Float, UInt
 
 __PI = 3.141592653589793
 
+
 def __binom(x, y):
     """
     Helper function for the Binomial coefficient.
@@ -30,7 +31,7 @@ def prob(
     # Cast to Array
     x, mu, phi = jnp.asarray(x), jnp.asarray(mu), jnp.asarray(phi)
 
-    return jnp.exp(logprob(x,mu,phi))
+    return jnp.exp(logprob(x, mu, phi))
 
 
 def logprob(
@@ -57,10 +58,12 @@ def logprob(
         x < 0,
         -jnp.inf,
         (
-            gammaln(x + phi) - gammaln(x + 1) - gammaln(phi)
+            gammaln(x + phi)
+            - gammaln(x + 1)
+            - gammaln(phi)
             + x * (jnp.log(mu) - jnp.log(mu + phi))
             + phi * (jnp.log(phi) - jnp.log(mu + phi))
-        )
+        ),
     )
 
     return evals

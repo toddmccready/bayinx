@@ -31,3 +31,4 @@ Additionally, when I get around to it I'd like the package documentation to also
 - https://arxiv.org/pdf/1803.05649 implement sylvester flows.
 - Learn how to generate documentation.
 - Figure out how to make transform_pars for flows such that there is no performance loss. Noticing some weird behaviour when adding constraints.
+- Remove inner `jit`ing where possible.

@@ -3,9 +3,10 @@ from typing import Tuple
 import equinox as eqx
 import jax.numpy as jnp
 import jax.tree as jt
-from jaxtyping import PyTree, Scalar, ScalarLike
+from jaxtyping import Scalar, ScalarLike
 
 from bayinx.core import Constraint, Parameter
+from bayinx.core._parameter import T
 
 
 class Lower(Constraint):
@@ -18,33 +19,28 @@ class Lower(Constraint):
     def __init__(self, lb: ScalarLike):
         self.lb = jnp.array(lb)
 
-    @eqx.filter_jit
-    def constrain(self, x: Parameter) -> Tuple[Parameter, Scalar]:
+    def constrain(self, param: Parameter[T]) -> Tuple[Parameter[T], Scalar]:
         """
         Enforces a lower bound on the parameter and adjusts the posterior density.
 
         # Parameters
-        - `x`: The unconstrained `Parameter`.
+        - `param`: The unconstrained `Parameter`.
 
         # Parameters
         A tuple containing:
             - A modified `Parameter` with relevant leaves satisfying the constraint.
             - A scalar Array representing the log-absolute-Jacobian of the transformation.
         """
-        # Extract relevant filter specification
-        filter_spec = x.filter_spec
-
         # Extract relevant parameters(all Array)
-        dyn_params, static_params = eqx.partition(x, filter_spec)
+        dyn, static = eqx.partition(param, param.filter_spec)
 
         # Compute density adjustment
-        laj: PyTree = jt.map(jnp.sum, dyn_params)  # pyright: ignore
-        laj: Scalar = jt.reduce(lambda a, b: a + b, laj)
+        laj: Scalar = jt.reduce(lambda a, b: a + b, jt.map(jnp.sum, dyn))
 
         # Compute transformation
-        dyn_params = jt.map(lambda v: jnp.exp(v) + self.lb, dyn_params)
+        dyn = jt.map(lambda v: jnp.exp(v) + self.lb, dyn)
 
         # Combine into full parameter object
-        x = eqx.combine(dyn_params, static_params)
+        param = eqx.combine(dyn, static)
 
-        return x, laj
+        return param, laj

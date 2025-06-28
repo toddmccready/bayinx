@@ -4,17 +4,14 @@ import jax.numpy as jnp
 import pytest
 from jaxtyping import Array
 
-from bayinx import Model, Parameter
+from bayinx import Model, Parameter, define
 from bayinx.dists import normal
 from bayinx.mhx.vi import MeanField, NormalizingFlow, Standard
 from bayinx.mhx.vi.flows import FullAffine, Planar, Radial
 
 
 class NormalDist(Model):
-    x: Parameter[Array]
-
-    def __init__(self):
-        self.x = Parameter(jnp.array([0.0, 0.0]))
+    x: Parameter[Array] = define((2,))
 
     def eval(self, data: Dict[str, Array]):
         # Constrain parameters
@@ -43,9 +40,7 @@ def test_meanfield(benchmark, var_draws):
     benchmark(benchmark_fit)
 
     # Assert parameters are roughly correct
-    assert all(abs(10.0 - vari.mean) < 0.1) and all(
-        abs(0.0 - vari.log_std) < 0.1
-    )
+    assert all(abs(10.0 - vari.mean) < 0.1) and all(abs(0.0 - vari.log_std) < 0.1)
 
 
 @pytest.mark.parametrize("var_draws", [1, 100])

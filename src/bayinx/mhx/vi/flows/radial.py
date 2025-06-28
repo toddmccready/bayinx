@@ -37,8 +37,8 @@ class Radial(Flow):
         }
         self.constraints = {"beta": jnp.exp}
 
-    @partial(jax.vmap, in_axes=(None, 0))
     @eqx.filter_jit
+    @partial(jax.vmap, in_axes=(None, 0))
     def forward(self, draws: Array) -> Array:
         """
         Applies the forward radial transformation for each draw.

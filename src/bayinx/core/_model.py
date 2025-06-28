@@ -1,19 +1,34 @@
 from abc import abstractmethod
 from dataclasses import field, fields
-from typing import Any, Self, Tuple
+from typing import Any, Dict, Optional, Self, Tuple
 
 import equinox as eqx
 import jax.numpy as jnp
 import jax.tree as jt
-from jaxtyping import Scalar
+from jaxtyping import PyTree, Scalar
 
 from ._constraint import Constraint
 from ._parameter import Parameter
 
 
-def define(shape: tuple[int, ...], constraint: Constraint):
-    """Defines a parameter(shape, domain, etc)."""
-    return field(metadata={"shape": shape, "constraint": constraint})
+def define(
+    shape: Optional[Tuple[int, ...]] = None,
+    init: Optional[PyTree] = None,
+    constraint: Optional[Constraint] = None
+):
+    """Define a parameter."""
+    metadata: Dict = {}
+    if constraint is not None:
+            metadata["constraint"] = constraint
+
+    if isinstance(shape, Tuple):
+        metadata["shape"] = shape
+    elif isinstance(init, PyTree):
+        metadata["init"] = init
+    else:
+        raise TypeError("Neither 'shape' nor 'init' were given as proper arguments.")
+
+    return field(metadata = metadata)
 
 
 class Model(eqx.Module):
@@ -24,6 +39,25 @@ class Model(eqx.Module):
 
     Include constraints by setting them equal to `define(Constraint)`.
     """
+
+    def __new__(cls, *args, **kwargs):
+        obj = super().__new__(cls)
+
+        # Auto-initialize parameters based on `define` metadata
+        for f in fields(cls):
+            if "shape" in f.metadata:
+                # Construct jax Array with correct dimensions
+                setattr(obj, f.name, Parameter(jnp.zeros(f.metadata["shape"])))
+            elif "init" in f.metadata:
+                # Slot in given 'init' object
+                setattr(obj, f.name, Parameter(f.metadata["init"]))
+            else:
+                raise RuntimeError("neither 'shape' or 'init' found in field metadata.")
+
+        return obj
+
+    def __init__(self):
+        return self
 
     @abstractmethod
     def eval(self, data: Any) -> Scalar:
@@ -48,12 +82,11 @@ class Model(eqx.Module):
                 filter_spec = eqx.tree_at(
                     lambda model: getattr(model, f.name),
                     filter_spec,
-                    replace=attr.filter_spec,
+                    replace=attr.filter_spec
                 )
 
         return filter_spec
 
-    @eqx.filter_jit
     def constrain_params(self) -> Tuple[Self, Scalar]:
         """
         Constrain parameters to the appropriate domain.
@@ -76,7 +109,7 @@ class Model(eqx.Module):
                 # Apply constraint
                 param, laj = constraint.constrain(param)
 
-                # Update parameters for constrained model
+                # Update parameters for constrained model at same node
                 constrained = eqx.tree_at(
                     lambda model: getattr(model, f.name), constrained, replace=param
                 )
@@ -86,7 +119,6 @@ class Model(eqx.Module):
 
         return constrained, target
 
-    @eqx.filter_jit
     def transform_params(self) -> Tuple[Self, Scalar]:
         """
         Apply a custom transformation to parameters if needed(defaults to constrained parameters).

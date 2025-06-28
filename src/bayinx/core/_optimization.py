@@ -10,6 +10,8 @@ from optax import GradientTransformation, OptState, Schedule
 from ._model import Model
 
 M = TypeVar("M", bound=Model)
+
+
 @eqx.filter_jit
 def optimize_model(
     model: M,
@@ -39,6 +41,7 @@ def optimize_model(
 
         # Evaluate posterior
         return model.eval(data)
+
     eval_grad: Callable[[M], M] = eqx.filter_jit(eqx.filter_grad(eval))
 
     # Construct scheduler
